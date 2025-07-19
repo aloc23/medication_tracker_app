@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      
+    navigator.serviceWorker.register('service-worker.js').then(reg => {
+      console.log("Service Worker Registered");
+
+      if ('PushManager' in window) {
+        reg.pushManager.getSubscription().then(sub => {
+          if (!sub) {
+            reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlB64ToUint8Array("BO_FAKE_KEY_1234567890")
+            }).then(subscription => {
+              console.log("Push Subscription:", JSON.stringify(subscription));
+              alert("Push subscription registered. You’ll need to send pushes from a backend.");
+            });
+          }
+        });
+      }
+    });
+
+    function urlB64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    }
+    
+        .then(() => console.log("Service Worker Registered"));
+    }
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Medication Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container">
+  <h2>💊 Welcome to the Medication Tracker – Testing Version</h2>
+  <p>This is a beta release. Please explore the app and use the feedback link below.</p>
+  <button onclick="resetData()">🧹 Reset My Data</button>
+  <button onclick="exportLogs()">📤 Export My Medication Log</button>
+  
+</div>
+<hr/>
+
+  <div class="container">
+    <h1>Medication Tracker</h1>
+    <button id="themeToggle" onclick="toggleTheme()">🌓</button>
+    <button onclick="switchUser()" style="float:right;margin-top:-40px;">🔄 Switch User</button>
+
+    <form id="medForm">
+      <input type="text" id="medName" placeholder="Medication Name" required />
+      <input type="number" id="qty" placeholder="Quantity per dose" required />
+      <input type="number" id="dosesPerDay" placeholder="Doses per day" required />
+      <div class="recurrence-options">
+        <label><input type="radio" name="repeatType" value="recurring" id="recurring" /> Recurring Daily</label>
+        <label><input type="radio" name="repeatType" value="fixed" id="fixedPeriod" /> Fixed Period</label>
+        <input type="number" id="weeks" placeholder="Weeks" style="display:none;" />
+      </div>
+      <button type="submit">Add Medication</button>
+    </form>
+
+    <div class="button-bar">
+      <button onclick="viewFullList()">📋 View All Medications</button>
+      <button onclick="viewStock()">💊 View Stock</button>
+      <button onclick="viewWeeklyTimeline()">📆 Weekly Timeline</button>
+      <button onclick="renderAdherenceChart()">📊 View Chart</button>
+      <button onclick="exportLogs()">📄 Export Logs</button>
+    </div>
+
+    <div id="fullMedList"></div>
+    <ul id="medList"></ul>
+    <div id="calendarLog" class="calendar-view"></div>
+    
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    function switchUser() {
+      localStorage.removeItem('currentUser');
+      window.location.href = 'user.html';
+    }
+  </script>
+
+<script>
+  function toggleTheme() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+  }
+
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+</script>
+
+<script>
+function resetData() {
+  if (confirm("This will erase all medication data for this user. Proceed?")) {
+    localStorage.removeItem(currentUser + '_medications');
+    localStorage.removeItem(currentUser + '_medLogs');
+    location.reload();
+  }
+}
+</script>
+</body>
+
+</html>

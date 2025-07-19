@@ -1,0 +1,75 @@
+
+:root {
+  --bg: #ffffff;
+  --text: #111;
+  --accent: #007bff;
+}
+
+body.dark {
+  --bg: #121212;
+  --text: #f0f0f0;
+  --accent: #90caf9;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+input, button, select {
+  padding: 8px 12px;
+  margin: 6px 4px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  max-width: 100%;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0056b3;
+}
+
+#medList li {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.calendar-day {
+  padding: 10px;
+  margin: 4px 0;
+  border-left: 5px solid gray;
+}
+
+.calendar-day.complete { border-color: green; }
+.calendar-day.partial { border-color: orange; }
+.calendar-day.missed  { border-color: red; }
+.calendar-day.future  { border-color: blue; }
+
+.med-group {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+button#themeToggle {
+  float: right;
+  margin-top: -40px;
+}

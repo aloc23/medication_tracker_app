@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Select User</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 12px 24px;
+      margin: 10px;
+      font-size: 18px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Who is using the app?</h1>
+  <button onclick="selectUser('gary')">Gary</button>
+  <button onclick="selectUser('trish')">Trish</button>
+  <script>
+    function selectUser(user) {
+      localStorage.setItem('currentUser', user);
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
