@@ -1,45 +1,85 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Select User</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f0f4f8;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+    body { font-family: sans-serif; background: #f0f4f8; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh;}
+    h1 { margin-bottom: 20px; }
+    #user-list button { 
+      padding: 12px 24px; margin: 10px;
+      font-size: 18px; border: none;
+      background-color: #007bff; color: white; border-radius: 10px; cursor: pointer;
     }
-    h1 {
-      margin-bottom: 20px;
-    }
-    button {
-      padding: 12px 24px;
-      margin: 10px;
-      font-size: 18px;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
+    #user-list button:hover { background-color: #0056b3; }
+    #add-user-form { margin-top: 20px; }
+    .delete-btn { background: #d32f2f; margin-left: 10px; }
+    .delete-btn:hover { background: #b71c1c; }
   </style>
 </head>
 <body>
   <h1>Who is using the app?</h1>
-  <button onclick="selectUser('gary')">Gary</button>
-  <button onclick="selectUser('trish')">Trish</button>
+  <div id="user-list"></div>
+  <form id="add-user-form" autocomplete="off">
+    <input id="new-user-name" placeholder="New user name" required maxlength="20" />
+    <button type="submit">Add User</button>
+  </form>
   <script>
+    function getUsers() {
+      return JSON.parse(localStorage.getItem('userList') || '["gary","trish"]');
+    }
+    function setUsers(users) {
+      localStorage.setItem('userList', JSON.stringify(users));
+    }
+    function renderUsers() {
+      const users = getUsers();
+      const div = document.getElementById('user-list');
+      div.innerHTML = '';
+      users.forEach(user => {
+        const btn = document.createElement('button');
+        btn.textContent = user;
+        btn.onclick = () => selectUser(user);
+        div.appendChild(btn);
+        // Delete button
+        const del = document.createElement('button');
+        del.textContent = "🗑️";
+        del.className = "delete-btn";
+        del.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`Delete user "${user}" and all their data?`)) {
+            deleteUser(user);
+          }
+        };
+        div.appendChild(del);
+      });
+    }
     function selectUser(user) {
       localStorage.setItem('currentUser', user);
       window.location.href = 'index.html';
     }
+    function deleteUser(user) {
+      let users = getUsers().filter(u => u !== user);
+      setUsers(users);
+      // Optionally clear user data
+      localStorage.removeItem(user + '_medications');
+      localStorage.removeItem(user + '_medLogs');
+      renderUsers();
+    }
+    document.getElementById('add-user-form').onsubmit = function(e) {
+      e.preventDefault();
+      let users = getUsers();
+      let name = document.getElementById('new-user-name').value.trim();
+      if (name && !users.includes(name)) {
+        users.push(name);
+        setUsers(users);
+        renderUsers();
+        document.getElementById('new-user-name').value = '';
+      } else {
+        alert("User name must be unique and not empty.");
+      }
+    };
+    renderUsers();
   </script>
 </body>
 </html>
