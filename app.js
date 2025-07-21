@@ -39,9 +39,17 @@ window.addTimeInput = function(value = "", reminder = false) {
 };
 if (!document.querySelector('.dose-time-input')) addTimeInput();
 
-document.getElementById('recursDaily').addEventListener('change', function() {
-  document.getElementById('recurrencePeriod').style.display = this.checked ? 'none' : '';
-});
+// Recurrence event handler helper
+function attachRecurrenceEventHandlers() {
+  const recursDaily = document.getElementById('recursDaily');
+  const periodDiv = document.getElementById('recurrencePeriod');
+  if (recursDaily && periodDiv) {
+    recursDaily.addEventListener('change', function() {
+      periodDiv.style.display = this.checked ? 'none' : '';
+    });
+  }
+}
+attachRecurrenceEventHandlers();
 
 document.getElementById('medForm').addEventListener('submit', function(e) {
   e.preventDefault();
@@ -86,6 +94,7 @@ document.getElementById('medForm').addEventListener('submit', function(e) {
   addTimeInput();
   document.getElementById('recurrencePeriod').style.display = 'none';
   document.getElementById('recursDaily').checked = true;
+  attachRecurrenceEventHandlers();
 });
 
 function getRunOutDate(med) {
@@ -187,6 +196,7 @@ window.renderMedsGrouped = function() {
     });
     medList.appendChild(details);
   });
+  attachRecurrenceEventHandlers();
 };
 
 window.markAllTaken = function(index) {
@@ -268,6 +278,7 @@ window.editMed = function(index) {
     document.getElementById('recStart').value = '';
     document.getElementById('recEnd').value = '';
   }
+  attachRecurrenceEventHandlers();
   deleteMed(index);
 };
 
