@@ -56,7 +56,8 @@
     }
     function selectUser(user) {
       localStorage.setItem('currentUser', user);
-      window.location.href = 'index.html';
+      // Use cache-busting querystring to force reload every time
+      window.location.href = 'index.html?v=' + Date.now();
     }
     function deleteUser(user) {
       let users = getUsers().filter(u => u !== user);
