@@ -1,4 +1,4 @@
-// All code is now wrapped in DOMContentLoaded to ensure elements exist.
+// All code wrapped in DOMContentLoaded so it never runs before the DOM is ready.
 document.addEventListener("DOMContentLoaded", function () {
 
 // Always get currentUser each action!
