@@ -33,6 +33,16 @@
         <div id="timeInputs"></div>
         <button type="button" onclick="addTimeInput()">+ Add Dose Time</button>
         <textarea id="medNotes" placeholder="Instructions, e.g. take with food" rows="2" maxlength="120"></textarea>
+        <div style="margin: 8px 0;">
+          <label>
+            <input type="checkbox" id="recursDaily" checked>
+            Repeat Daily
+          </label>
+        </div>
+        <div id="recurrencePeriod" style="display:none; margin-bottom: 12px;">
+          <label>Start date: <input type="date" id="recStart"></label>
+          <label style="margin-left:8px;">End date: <input type="date" id="recEnd"></label>
+        </div>
         <button type="submit">Add/Update Medication</button>
       </form>
     </section>
@@ -69,7 +79,6 @@
       navigator.serviceWorker.register('service-worker.js');
     }
   </script>
-  <!-- Only load app.js AFTER everything else is in the DOM -->
   <script src="app.js"></script>
 </body>
 </html>
