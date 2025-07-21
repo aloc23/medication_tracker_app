@@ -251,19 +251,46 @@ function markLate(date, name, time, medIndex) {
 function renderAdherenceChart() {
   hideAllSections();
   document.getElementById('chartSection').style.display = 'block';
+
+  // Defensive: clear the canvas for Chart.js if needed
+  const canvas = document.getElementById('adherenceChart');
+  // If a previous chart exists, destroy it first
+  if (window.adherenceChart) {
+    window.adherenceChart.destroy();
+    window.adherenceChart = null;
+  }
+
+  // Get range (last 7, 30 or all)
   const range = document.getElementById('chartRange')?.value || "7";
   const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
-  let days = [];
   let allDates = Object.keys(logs).sort();
   if (range !== "all") {
     allDates = allDates.slice(-parseInt(range));
   }
-  days = allDates;
+  const days = allDates;
+  // Count expected per day (for y axis)
   const expectedPerDay = meds.reduce((sum, m) => sum + (m.times?.length || 0), 0);
+  // How many actually taken per day
   const takenCounts = days.map(date => logs[date]?.length || 0);
 
-  if (window.adherenceChart) window.adherenceChart.destroy();
-  const ctx = document.getElementById('adherenceChart').getContext('2d');
+  // If there is no data, show a message
+  if (days.length === 0) {
+    canvas.style.display = "none";
+    if (!document.getElementById("noChartMsg")) {
+      const msg = document.createElement("div");
+      msg.id = "noChartMsg";
+      msg.textContent = "No data to display. Mark some doses as taken!";
+      msg.style = "margin:20px;color:#666;text-align:center;";
+      document.getElementById("chartSection").appendChild(msg);
+    }
+    return;
+  }
+  if (document.getElementById("noChartMsg")) {
+    document.getElementById("noChartMsg").remove();
+    canvas.style.display = "";
+  }
+
+  const ctx = canvas.getContext('2d');
   window.adherenceChart = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -275,6 +302,11 @@ function renderAdherenceChart() {
       }]
     },
     options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true },
+        title: { display: false }
+      },
       scales: {
         y: { beginAtZero: true, suggestedMax: expectedPerDay }
       }
