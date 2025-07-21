@@ -1,118 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Medication Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 0; }
-    form { background: #fff; margin: 30px auto; max-width: 400px; border-radius: 12px; padding: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.09); }
-    input, textarea, button, select { font-size: 1em; margin-bottom: 8px; border-radius: 6px; border: 1px solid #cbd6e2; padding: 8px; width: 100%; box-sizing: border-box;}
-    button { width: auto; background: #007bff; color: #fff; border: none; padding: 8px 20px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .time-input-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-    .time-input-row input[type="time"] { width: auto; }
-    .time-input-row label { font-size: 0.96em; color: #444; }
-    .time-input-row button { background: #d32f2f; color: #fff; border: none; border-radius: 4px; font-size: 1.1em; padding: 0 8px; }
-    .time-input-row button:hover { background: #b71c1c; }
-    #medList { margin: 30px auto 0 auto; max-width: 480px; padding: 10px; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-    #medList li { margin-bottom: 10px; padding-bottom: 9px; border-bottom: 1px solid #e6e6e6; }
-    #medList li:last-child { border-bottom: none; }
-    h2 { text-align: center; color: #007bff; }
-    .reminder-badge { color: #e67e22; margin-left: 5px; font-size: 1.1em; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" href="icon-192.png" sizes="192x192" />
+  <meta name="theme-color" content="#007bff" />
 </head>
 <body>
-  <h2>Medication Tracker</h2>
-  <form id="medForm" autocomplete="off">
-    <input id="medName" type="text" placeholder="Medication Name" required maxlength="40" />
-    <input id="qty" type="number" placeholder="Dose Amount" required min="1" max="1000" />
-    <div id="timeInputs"></div>
-    <button type="button" onclick="addTimeInput()">+ Add Dose Time</button>
-    <textarea id="medNotes" placeholder="Instructions, e.g. take with food" rows="2" maxlength="120"></textarea>
-    <button type="submit">Add/Update Medication</button>
-  </form>
-  <div id="medListContainer">
-    <h2>Your Medications</h2>
-    <ul id="medList"></ul>
-  </div>
+  <header class="sticky-header">
+    <h1>Medication Tracker</h1>
+    <nav>
+      <button onclick="renderMedsGrouped()">Medications</button>
+      <button onclick="showStockManager()">Stock</button>
+      <button onclick="viewWeeklyTimeline()">Weekly</button>
+      <button onclick="renderAdherenceChart()">Adherence</button>
+      <button onclick="showHistory()">History</button>
+      <button onclick="exportLogs()">Export CSV</button>
+      <button onclick="location.href='user.html'">Switch User</button>
+    </nav>
+  </header>
+  <main>
+    <section id="medListSection">
+      <h2 class="section-title">Your Medications</h2>
+      <div id="medList"></div>
+      <form id="medForm" autocomplete="off">
+        <input id="medName" type="text" placeholder="Medication Name" required maxlength="40" />
+        <input id="qty" type="number" placeholder="Dose Amount" required min="1" max="1000" />
+        <div id="timeInputs"></div>
+        <button type="button" onclick="addTimeInput()">+ Add Dose Time</button>
+        <textarea id="medNotes" placeholder="Instructions, e.g. take with food" rows="2" maxlength="120"></textarea>
+        <button type="submit">Add/Update Medication</button>
+      </form>
+    </section>
+    <section id="stockManagerSection" style="display:none;">
+      <h2 class="section-title">Stock Management</h2>
+      <div id="stockManager"></div>
+    </section>
+    <section id="weeklyViewSection" style="display:none;">
+      <h2 class="section-title">Weekly Timeline</h2>
+      <div id="weeklyView"></div>
+    </section>
+    <section id="chartSection" style="display:none;">
+      <h2 class="section-title">Adherence Chart</h2>
+      <select id="chartRange" onchange="renderAdherenceChart()">
+        <option value="7">Last 7 Days</option>
+        <option value="30">Last 30 Days</option>
+        <option value="all">All</option>
+      </select>
+      <canvas id="adherenceChart" width="600" height="280"></canvas>
+    </section>
+    <section id="historySection" style="display:none;">
+      <h2 class="section-title">Dose History</h2>
+      <div id="history"></div>
+    </section>
+  </main>
+  <div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:8px;z-index:1000;"></div>
   <script>
-    // Set a default user if not already set
     if (!localStorage.getItem('currentUser')) {
-      localStorage.setItem('currentUser', 'testuser');
+      window.location.href = 'user.html';
     }
-    const currentUser = localStorage.getItem('currentUser');
-
-    // Add at least one time input on load for new medication
-    function addTimeInput(value = "", reminder = false) {
-      const div = document.createElement("div");
-      div.className = "time-input-row";
-      div.innerHTML = `
-        <input type="time" class="dose-time-input" value="${value}">
-        <label><input type="checkbox" class="reminder-checkbox" ${reminder ? "checked" : ""}> Reminder</label>
-        <button type="button" onclick="this.parentNode.remove()">×</button>
-      `;
-      document.getElementById('timeInputs').appendChild(div);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
     }
-    if (!document.querySelector('.dose-time-input')) addTimeInput();
-
-    // Render the medication list
-    function renderMeds() {
-      const meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
-      const medList = document.getElementById('medList');
-      medList.innerHTML = '';
-      meds.forEach((med, idx) => {
-        // Dose times with reminder icons
-        let timesHtml = med.times.map((t, i) =>
-          `${t}${med.reminders && med.reminders[i] ? '<span class="reminder-badge" title="Reminder set">⏰</span>' : ''}`
-        ).join(', ');
-        const li = document.createElement('li');
-        li.innerHTML = `<b>${med.name}</b> (${med.dosage})<br>
-        Times: ${timesHtml}<br>
-        Notes: ${med.notes ? med.notes : '-'}
-        <br><button onclick="deleteMed(${idx})">Delete</button>`;
-        medList.appendChild(li);
-      });
-    }
-
-    // Add Medication Form Handler
-    document.getElementById('medForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const name = document.getElementById('medName').value.trim();
-      const qty = parseInt(document.getElementById('qty').value);
-      const notes = document.getElementById('medNotes').value.trim();
-      let times = [], reminders = [];
-      document.querySelectorAll('.dose-time-input').forEach((input, i) => {
-        const time = input.value;
-        if (time) {
-          times.push(time);
-          reminders.push(input.parentNode.querySelector('.reminder-checkbox').checked);
-        }
-      });
-      if (!name || isNaN(qty) || times.length === 0) {
-        alert("Please fill out required fields and add at least one dose time.");
-        return;
-      }
-      let meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
-      meds.push({ name, dosage: `${qty}`, times, reminders, notes, stock: 0 });
-      localStorage.setItem(currentUser + '_medications', JSON.stringify(meds));
-      renderMeds();
-      document.getElementById('medForm').reset();
-      document.getElementById('timeInputs').innerHTML = '';
-      addTimeInput();
-    });
-
-    // Delete medication
-    function deleteMed(idx) {
-      let meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
-      if (confirm("Delete this medication?")) {
-        meds.splice(idx, 1);
-        localStorage.setItem(currentUser + '_medications', JSON.stringify(meds));
-        renderMeds();
-      }
-    }
-
-    renderMeds();
   </script>
+  <script src="app.js"></script>
 </body>
 </html>
