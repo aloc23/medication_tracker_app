@@ -1,64 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <script>
-    if ('serviceWorker' in navigator) {
-      
-    navigator.serviceWorker.register('service-worker.js').then(reg => {
-      console.log("Service Worker Registered");
-
-      if ('PushManager' in window) {
-        reg.pushManager.getSubscription().then(sub => {
-          if (!sub) {
-            reg.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: urlB64ToUint8Array("BO_FAKE_KEY_1234567890")
-            }).then(subscription => {
-              console.log("Push Subscription:", JSON.stringify(subscription));
-              alert("Push subscription registered. You’ll need to send pushes from a backend.");
-            });
-          }
-        });
-      }
-    });
-
-    function urlB64ToUint8Array(base64String) {
-      const padding = '='.repeat((4 - base64String.length % 4) % 4);
-      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-      const rawData = atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
-      for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-      }
-      return outputArray;
-    }
-    
-        .then(() => console.log("Service Worker Registered"));
-    }
-  </script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Medication Tracker</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
-<div class="container">
-  <h2>   Welcome to the Medication Tracker  </h2>
-  <p>This is a beta release. Please explore the app and use the feedback link below.</p>
-  <button onclick="resetData()">🧹 Reset My Data</button>
-  <button onclick="exportLogs()">📤 Export My Medication Log</button>
-  
-</div>
-<hr/>
-
-  <div class="container">
+  <header class="sticky-header">
     <h1>Medication Tracker</h1>
-    <button id="themeToggle" onclick="toggleTheme()">🌓</button>
-    <button onclick="switchUser()" style="float:right;margin-top:-40px;">🔄 Switch User</button>
-
+    <nav>
+      <button onclick="renderMedsGrouped()">📋 Medications</button>
+      <button onclick="showStockManager()">💊 Stock</button>
+      <button onclick="viewWeeklyTimeline()">📆 Weekly</button>
+      <button onclick="renderAdherenceChart()">📊 Chart</button>
+      <button onclick="showHistory()">🕓 History</button>
+      <button onclick="exportLogs()">📄 Export</button>
+      <button onclick="toggleTheme()" id="themeToggle">🌓</button>
+      <button onclick="switchUser()" style="float:right;">🔄 Switch User</button>
+    </nav>
+  </header>
+  <main>
+    <section id="medListSection">
+      <h2 class="section-title">Medications</h2>
+      <div id="medList"></div>
+    </section>
+    <section id="stockManagerSection" style="display:none;">
+      <h2 class="section-title">Stock Manager</h2>
+      <div id="stockManager"></div>
+    </section>
+    <section id="weeklyViewSection" style="display:none;">
+      <h2 class="section-title">Weekly Timeline</h2>
+      <div id="weeklyView"></div>
+    </section>
+    <section id="chartSection" style="display:none;">
+      <h2 class="section-title">Adherence Chart</h2>
+      <canvas id="adherenceChart"></canvas>
+      <div style="margin:10px 0;">
+        <label for="chartRange">View:</label>
+        <select id="chartRange" onchange="renderAdherenceChart()">
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="all">All time</option>
+        </select>
+      </div>
+    </section>
+    <section id="historySection" style="display:none;">
+      <h2 class="section-title">History</h2>
+      <div id="history"></div>
+      <button onclick="exportLogs()">Export History as CSV</button>
+    </section>
+    <section id="calendarLog" class="calendar-view"></section>
     <form id="medForm">
       <input type="text" id="medName" placeholder="Medication Name" required />
       <input type="number" id="qty" placeholder="Quantity per dose" required />
@@ -70,49 +64,28 @@
       </div>
       <button type="submit">Add Medication</button>
     </form>
-
-    <div class="button-bar">
-      <button onclick="viewFullList()">📋 View All Medications</button>
-      <button onclick="viewStock()">💊 View Stock</button>
-      <button onclick="viewWeeklyTimeline()">📆 Weekly Timeline</button>
-      <button onclick="renderAdherenceChart()">📊 View Chart</button>
-      <button onclick="exportLogs()">📄 Export Logs</button>
-    </div>
-
-    <div id="fullMedList"></div>
-    <ul id="medList"></ul>
-    <div id="calendarLog" class="calendar-view"></div>
-    
-  </div>
-
-  <script src="app.js"></script>
+    <button onclick="resetData()">🧹 Reset My Data</button>
+    <button onclick="exportLogs()">📤 Export My Medication Log</button>
+  </main>
   <script>
     function switchUser() {
       localStorage.removeItem('currentUser');
       window.location.href = 'user.html';
     }
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+    }
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+    }
+    function resetData() {
+      if (confirm("This will erase all medication data for this user. Proceed?")) {
+        localStorage.removeItem(currentUser + '_medications');
+        localStorage.removeItem(currentUser + '_medLogs');
+        location.reload();
+      }
+    }
   </script>
-
-<script>
-  function toggleTheme() {
-    document.body.classList.toggle("dark");
-    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
-  }
-
-  if (localStorage.getItem("theme") === "dark") {
-    document.body.classList.add("dark");
-  }
-</script>
-
-<script>
-function resetData() {
-  if (confirm("This will erase all medication data for this user. Proceed?")) {
-    localStorage.removeItem(currentUser + '_medications');
-    localStorage.removeItem(currentUser + '_medLogs');
-    location.reload();
-  }
-}
-</script>
 </body>
-
 </html>
