@@ -1,168 +1,98 @@
-
+// User/session
 const currentUser = localStorage.getItem('currentUser') || 'gary';
 let meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
 
+// Utility
 function saveMeds() {
   localStorage.setItem(currentUser + '_medications', JSON.stringify(meds));
 }
+function stockColor(stock) {
+  if (stock > 10) return 'stock-green';
+  if (stock > 3) return 'stock-orange';
+  return 'stock-red';
+}
+function hideAllSections() {
+  document.getElementById('medListSection').style.display = 'none';
+  document.getElementById('stockManagerSection').style.display = 'none';
+  document.getElementById('weeklyViewSection').style.display = 'none';
+  document.getElementById('chartSection').style.display = 'none';
+  document.getElementById('historySection').style.display = 'none';
+}
 
-function renderMeds() {
+// 1. Grouped Medications List (expandable, mark taken, edit/delete)
+function renderMedsGrouped() {
+  hideAllSections();
   const medList = document.getElementById('medList');
+  document.getElementById('medListSection').style.display = 'block';
   medList.innerHTML = '';
-  const today = new Date().toISOString().split('T')[0];
-  const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
-
-  meds.forEach((med, index) => {
-    med.times?.forEach(time => {
-      const doseKey = `${med.name}-${time}-${today}`;
-      const alreadyTaken = log[today]?.some(entry => entry.doseKey === doseKey);
-      const li = document.createElement('li');
-      li.innerHTML = `${med.name} (${med.dosage}) at ${time} [Stock: ${med.stock || 0}]
-        <button onclick="markTaken(${index}, '${time}')" ${alreadyTaken ? 'disabled' : ''}>
-        ${alreadyTaken ? '✔ Taken' : 'Taken'}</button>`;
-      medList.appendChild(li);
-    });
-  });
-}
-
-function markTaken(index, time) {
-  const med = meds[index];
-  const today = new Date().toISOString().split('T')[0];
-  const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
-  const doseKey = `${med.name}-${time}-${today}`;
-
-  if (!log[today]) log[today] = [];
-  if (log[today].some(entry => entry.doseKey === doseKey)) return;
-
-  log[today].push({ ...med, time, doseKey });
-  med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
-  saveMeds();
-  localStorage.setItem(currentUser + '_medLogs', JSON.stringify(log));
-  renderMeds();
-  renderCalendar();
-}
-
-function renderCalendar() {
-  const calendarLog = document.getElementById('calendarLog');
-  const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
-  const today = new Date();
-  calendarLog.innerHTML = '';
-
-  for (let offset = -6; offset <= 1; offset++) {
-    const date = new Date();
-    date.setDate(today.getDate() + offset);
-    const dateStr = date.toISOString().split('T')[0];
-    const taken = log[dateStr] || [];
-    const expected = meds.flatMap(m => m.times?.map(() => m.name) || []);
-    const takenNames = taken.map(m => m.name);
-    let status = 'none';
-    if (offset > 0) status = 'future';
-    else {
-      const matched = [...new Set(takenNames)].filter(name => expected.includes(name)).length;
-      if (matched === expected.length) status = 'complete';
-      else if (matched > 0) status = 'partial';
-      else status = 'missed';
-    }
-
-    const div = document.createElement('div');
-    div.className = `calendar-day ${status}`;
-    div.innerHTML = `<strong>${dateStr}</strong><br/>Taken: ${taken.length} / ${expected.length}<br/>
-      ${taken.map(m => m.name).join(', ') || 'None'}`;
-    calendarLog.appendChild(div);
-  }
-}
-
-
-function viewFullList() {
-  const fullList = document.getElementById('fullMedList');
-  fullList.innerHTML = '';
   const grouped = {};
-  meds.forEach((med, index) => {
+  meds.forEach((med, i) => {
     if (!grouped[med.name]) grouped[med.name] = [];
-    grouped[med.name].push({ ...med, index });
+    grouped[med.name].push({ ...med, index: i });
   });
-
-  const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
-  const today = new Date();
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    return d.toISOString().split('T')[0];
-  }).reverse();
 
   Object.entries(grouped).forEach(([name, group]) => {
     const details = document.createElement('details');
+    details.className = 'med-card';
     const summary = document.createElement('summary');
-    summary.textContent = `${name} (${group.length} schedule${group.length > 1 ? 's' : ''})`;
+    summary.innerHTML = `<span>${name}</span> <span class="stock-badge ${stockColor(group[0].stock)}">${group[0].stock || 0} pills</span>`;
     details.appendChild(summary);
 
     group.forEach(item => {
       const div = document.createElement('div');
-      div.className = 'med-group';
+      div.style.margin = '10px 0';
       div.innerHTML = `
-        <strong>${item.name}</strong> - Dose: ${item.dosage}, Times: ${item.times?.join(', ') || 'N/A'}<br/>
-        Stock: <input type="number" value="${item.stock || 0}" id="stock-${item.index}" />
-        <button onclick="updateStock(${item.index})">Update</button>
+        <strong>Dose:</strong> ${item.dosage}<br>
+        <strong>Times:</strong> ${item.times?.join(', ') || 'N/A'}<br>
+        <button onclick="markTaken(${item.index},'${item.times[0]}')">Mark First Dose Taken</button>
+        <button onclick="editMed(${item.index})">Edit</button>
+        <button onclick="deleteMed(${item.index})">Delete</button>
       `;
       details.appendChild(div);
     });
-
-    // Integrated weekly grid
-    const table = document.createElement('table');
-    table.style.width = '100%';
-    table.style.marginTop = '10px';
-    table.border = '1';
-
-    let header = '<tr><th>Date</th>';
-    const times = [...new Set(group.flatMap(m => m.times || []))];
-    times.forEach(t => header += `<th>${t}</th>`);
-    header += '</tr>';
-    table.innerHTML = header;
-
-    days.forEach(date => {
-      let row = `<tr><td>${date}</td>`;
-      times.forEach(time => {
-        const taken = (log[date] || []).some(entry => entry.name === name && entry.time === time);
-        row += `<td style="text-align:center;color:${taken ? 'green' : 'red'}">${taken ? '✔' : '❌'}</td>`;
-      });
-      row += '</tr>';
-      table.innerHTML += row;
-    });
-
-    details.appendChild(table);
-    fullList.appendChild(details);
+    medList.appendChild(details);
   });
 }
-function updateStock(index) {
-  const input = document.getElementById(`stock-${index}`);
-  const value = parseInt(input.value);
-  if (!isNaN(value)) {
-    meds[index].stock = value;
-    saveMeds();
-    alert("Stock updated.");
-    if (value < 5) alert("⚠️ Low stock warning! Consider restocking soon.");
-  }
+
+// 2. Stock Manager
+function showStockManager() {
+  hideAllSections();
+  const stockSection = document.getElementById('stockManager');
+  document.getElementById('stockManagerSection').style.display = 'block';
+  stockSection.innerHTML = '';
+  meds.forEach((med, i) => {
+    const div = document.createElement('div');
+    div.className = `stock-item ${stockColor(med.stock)}`;
+    div.innerHTML = `
+      <b>${med.name}</b> 
+      <input type="number" id="stock-input-${i}" value="${med.stock || 0}" min="0">
+      <button onclick="updateStock(${i})">Update</button>
+    `;
+    stockSection.appendChild(div);
+  });
 }
 
-function viewStock() {
-  const stockList = meds.map(m => `${m.name}: ${m.stock || 0} pills`).join('\n');
-  alert(stockList || "No stock info.");
-}
-
+// 3. Collapsible Weekly View
 function viewWeeklyTimeline() {
-  const fullList = document.getElementById('fullMedList');
-  fullList.innerHTML = '<h3>📅 Weekly Timeline</h3>';
+  hideAllSections();
+  const weeklyView = document.getElementById('weeklyView');
+  document.getElementById('weeklyViewSection').style.display = 'block';
+  weeklyView.innerHTML = '';
   const today = new Date();
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today);
-    d.setDate(d.getDate() + i);
+    d.setDate(d.getDate() - 6 + i);
     return d.toISOString().split('T')[0];
   });
 
-  meds.forEach(med => {
-    const div = document.createElement('div');
-    div.className = 'med-group';
-    let table = '<table border="1" style="width:100%;margin-bottom:10px;"><tr><th>Date</th>';
+  meds.forEach((med, i) => {
+    const details = document.createElement('details');
+    details.className = 'med-card';
+    const summary = document.createElement('summary');
+    summary.textContent = `${med.name} - Weekly Overview`;
+    details.appendChild(summary);
+
+    let table = '<table class="weekly-table"><tr><th>Date</th>';
     med.times.forEach(t => table += `<th>${t}</th>`);
     table += '</tr>';
 
@@ -171,16 +101,117 @@ function viewWeeklyTimeline() {
       med.times.forEach(t => {
         const takenLog = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
         const taken = takenLog[date]?.some(e => e.name === med.name && e.time === t);
-        table += `<td style="text-align:center;">${taken ? '✔' : '❌'}</td>`;
+        table += `<td style="color:${taken ? 'green' : 'red'};font-weight:bold;">${taken ? '✔' : '❌'}</td>`;
       });
       table += '</tr>';
     });
     table += '</table>';
-    div.innerHTML = `<strong>${med.name}</strong><br/>${table}`;
-    fullList.appendChild(div);
+    details.innerHTML += table;
+    weeklyView.appendChild(details);
   });
 }
 
+// 4. Adherence Chart (with selectable range)
+function renderAdherenceChart() {
+  hideAllSections();
+  document.getElementById('chartSection').style.display = 'block';
+  const range = document.getElementById('chartRange')?.value || "7";
+  const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
+  let days = [];
+  let allDates = Object.keys(logs).sort();
+  if (range !== "all") {
+    allDates = allDates.slice(-parseInt(range));
+  }
+  days = allDates;
+  const expectedPerDay = meds.reduce((sum, m) => sum + (m.times?.length || 0), 0);
+  const takenCounts = days.map(date => logs[date]?.length || 0);
+
+  if (window.adherenceChart) window.adherenceChart.destroy();
+  const ctx = document.getElementById('adherenceChart').getContext('2d');
+  window.adherenceChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: days,
+      datasets: [{
+        label: 'Taken',
+        data: takenCounts,
+        backgroundColor: '#4caf50'
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true, suggestedMax: expectedPerDay }
+      }
+    }
+  });
+}
+
+// 5. History View
+function showHistory() {
+  hideAllSections();
+  document.getElementById('historySection').style.display = 'block';
+  const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
+  const historyDiv = document.getElementById('history');
+  let html = '<table><tr><th>Date</th><th>Medication</th><th>Dose</th><th>Time</th></tr>';
+  Object.entries(logs).forEach(([date, entries]) => {
+    entries.forEach(e => {
+      html += `<tr><td>${date}</td><td>${e.name}</td><td>${e.dosage}</td><td>${e.time}</td></tr>`;
+    });
+  });
+  html += '</table>';
+  historyDiv.innerHTML = html;
+}
+
+// 6. Stock and Med Operations
+function updateStock(index) {
+  const input = document.getElementById(`stock-input-${index}`);
+  const value = parseInt(input.value);
+  if (!isNaN(value)) {
+    meds[index].stock = value;
+    saveMeds();
+    showStockManager();
+    alert("Stock updated.");
+    if (value < 5) alert("⚠️ Low stock warning! Consider restocking soon.");
+  }
+}
+function markTaken(index, time) {
+  const med = meds[index];
+  const today = new Date().toISOString().split('T')[0];
+  const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
+  const doseKey = `${med.name}-${time}-${today}`;
+  if (!log[today]) log[today] = [];
+  if (log[today].some(entry => entry.doseKey === doseKey)) return;
+  log[today].push({ ...med, time, doseKey });
+  med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
+  saveMeds();
+  localStorage.setItem(currentUser + '_medLogs', JSON.stringify(log));
+  renderMedsGrouped();
+}
+function deleteMed(index) {
+  if (confirm("Delete this medication schedule?")) {
+    meds.splice(index, 1);
+    saveMeds();
+    renderMedsGrouped();
+  }
+}
+function editMed(index) {
+  // For full-featured editing, add a modal or pre-fill the form and update on submit
+  const med = meds[index];
+  document.getElementById('medName').value = med.name;
+  document.getElementById('qty').value = med.dosage;
+  document.getElementById('dosesPerDay').value = med.times.length;
+  if (med.recurring) {
+    document.getElementById('recurring').checked = true;
+    document.getElementById('weeks').style.display = 'none';
+  } else {
+    document.getElementById('fixedPeriod').checked = true;
+    document.getElementById('weeks').value = med.weeks || '';
+    document.getElementById('weeks').style.display = 'inline';
+  }
+  deleteMed(index); // Remove old, will re-add when submitted
+}
+
+// 7. Export
 function exportLogs() {
   const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
   let csv = "Date,Medication,Time,Dose\n";
@@ -189,7 +220,6 @@ function exportLogs() {
       csv += `${date},${e.name},${e.time},${e.dosage}\n`;
     });
   });
-
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -200,31 +230,7 @@ function exportLogs() {
   document.body.removeChild(link);
 }
 
-function requestNotificationPermission() {
-  if ('Notification' in window && Notification.permission !== 'granted') {
-    Notification.requestPermission();
-  }
-}
-
-function scheduleDoseReminders() {
-  meds.forEach(med => {
-    med.times.forEach(time => {
-      const now = new Date();
-      const [hour, minute] = time.split(':').map(Number);
-      const target = new Date();
-      target.setHours(hour, minute, 0, 0);
-      if (target > now) {
-        const timeout = target.getTime() - now.getTime();
-        setTimeout(() => {
-          if (Notification.permission === 'granted') {
-            new Notification(`Time to take ${med.name} (${med.dosage})`);
-          }
-        }, timeout);
-      }
-    });
-  });
-}
-
+// 8. Form for Adding/Editing Meds
 document.getElementById('medForm').addEventListener('submit', e => {
   e.preventDefault();
   const name = document.getElementById('medName').value.trim();
@@ -257,12 +263,10 @@ document.getElementById('medForm').addEventListener('submit', e => {
 
   meds.push(newMed);
   saveMeds();
-  renderMeds();
-  renderCalendar();
+  renderMedsGrouped();
   document.getElementById('medForm').reset();
   document.getElementById('weeks').style.display = 'none';
 });
-
 document.getElementById('fixedPeriod').addEventListener('change', () => {
   document.getElementById('weeks').style.display = 'inline';
 });
@@ -273,7 +277,34 @@ document.getElementById('recurring').addEventListener('change', () => {
   }
 });
 
-requestNotificationPermission();
-renderMeds();
-renderCalendar();
-scheduleDoseReminders();
+// 9. Notifications/reminders
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission !== 'granted') {
+    Notification.requestPermission();
+  }
+}
+function scheduleDoseReminders() {
+  meds.forEach(med => {
+    med.times.forEach(time => {
+      const now = new Date();
+      const [hour, minute] = time.split(':').map(Number);
+      const target = new Date();
+      target.setHours(hour, minute, 0, 0);
+      if (target > now) {
+        const timeout = target.getTime() - now.getTime();
+        setTimeout(() => {
+          if (Notification.permission === 'granted') {
+            new Notification(`Time to take ${med.name} (${med.dosage})`);
+          }
+        }, timeout);
+      }
+    });
+  });
+}
+
+// 10. Startup/init
+window.onload = function() {
+  renderMedsGrouped();
+  requestNotificationPermission();
+  scheduleDoseReminders();
+};
