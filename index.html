@@ -60,9 +60,11 @@
   </main>
   <div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:8px;z-index:1000;"></div>
   <script>
+    // Redirect to user.html if no user is selected
     if (!localStorage.getItem('currentUser')) {
       window.location.href = 'user.html';
     }
+    // Register service worker for PWA offline support
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js');
     }
