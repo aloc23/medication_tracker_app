@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderMedsGrouped();
 });
 
-// Medication Form Logic
+// Medication Form Logic (with fix: always reload meds array from storage before add)
 document.getElementById('medForm').addEventListener('submit', e => {
   e.preventDefault();
   const name = document.getElementById('medName').value.trim();
@@ -74,6 +74,10 @@ document.getElementById('medForm').addEventListener('submit', e => {
     showToast("Please fill out required fields.");
     return;
   }
+
+  // RELOAD meds array from storage to avoid stale state!
+  let medsLocal = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
+
   const newMed = {
     name,
     dosage: `${qty}`,
@@ -82,8 +86,10 @@ document.getElementById('medForm').addEventListener('submit', e => {
     notes,
     stock: 0
   };
-  meds.push(newMed);
-  saveMeds();
+  medsLocal.push(newMed);
+  localStorage.setItem(currentUser + '_medications', JSON.stringify(medsLocal));
+  meds = medsLocal; // update the global for rendering
+
   renderMedsGrouped();
   document.getElementById('medForm').reset();
   document.getElementById('timeInputs').innerHTML = '';
@@ -93,6 +99,7 @@ document.getElementById('medForm').addEventListener('submit', e => {
 // Render Medications with notes, dose times, and reminders
 function renderMedsGrouped() {
   hideAllSections();
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || []; // always use latest
   const medList = document.getElementById('medList');
   document.getElementById('medListSection').style.display = 'block';
   medList.innerHTML = '';
@@ -147,6 +154,7 @@ function renderMedsGrouped() {
 
 // Mark all doses for today as taken for a medication
 function markAllTaken(index) {
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   const med = meds[index];
   const today = new Date().toISOString().split('T')[0];
   const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
@@ -163,7 +171,7 @@ function markAllTaken(index) {
 
   if (dosesMarked > 0) {
     med.stock = Math.max(0, (med.stock || 0) - dosesMarked * parseInt(med.dosage));
-    saveMeds();
+    localStorage.setItem(currentUser + '_medications', JSON.stringify(meds));
     localStorage.setItem(currentUser + '_medLogs', JSON.stringify(log));
     showToast(`Marked ${dosesMarked} dose(s) as taken.`);
     renderMedsGrouped();
@@ -174,6 +182,7 @@ function markAllTaken(index) {
 
 // Mark a single dose as taken (for a specific time)
 function markTaken(index, time) {
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   const med = meds[index];
   const today = new Date().toISOString().split('T')[0];
   const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
@@ -185,7 +194,7 @@ function markTaken(index, time) {
   }
   log[today].push({ ...med, time, doseKey });
   med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
-  saveMeds();
+  localStorage.setItem(currentUser + '_medications', JSON.stringify(meds));
   localStorage.setItem(currentUser + '_medLogs', JSON.stringify(log));
   showToast('Dose marked as taken.');
   renderMedsGrouped();
@@ -193,13 +202,15 @@ function markTaken(index, time) {
 
 // Edit and delete medications
 function deleteMed(index) {
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   if (confirm("Delete this medication schedule?")) {
     meds.splice(index, 1);
-    saveMeds();
+    localStorage.setItem(currentUser + '_medications', JSON.stringify(meds));
     renderMedsGrouped();
   }
 }
 function editMed(index) {
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   const med = meds[index];
   document.getElementById('medName').value = med.name;
   document.getElementById('qty').value = med.dosage;
@@ -214,6 +225,7 @@ function editMed(index) {
 // Stock Manager
 function showStockManager() {
   hideAllSections();
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   const stockSection = document.getElementById('stockManager');
   document.getElementById('stockManagerSection').style.display = 'block';
   stockSection.innerHTML = '';
@@ -230,11 +242,12 @@ function showStockManager() {
   });
 }
 function updateStock(index) {
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   const input = document.getElementById(`stock-input-${index}`);
   const value = parseInt(input.value);
   if (!isNaN(value)) {
     meds[index].stock = value;
-    saveMeds();
+    localStorage.setItem(currentUser + '_medications', JSON.stringify(meds));
     showStockManager();
     showToast("Stock updated.");
     if (value < 5) showToast("⚠️ Low stock warning! Consider restocking soon.", 3000);
@@ -244,6 +257,7 @@ function updateStock(index) {
 // Collapsible Weekly View
 function viewWeeklyTimeline() {
   hideAllSections();
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   const weeklyView = document.getElementById('weeklyView');
   document.getElementById('weeklyViewSection').style.display = 'block';
   weeklyView.innerHTML = '';
@@ -303,6 +317,7 @@ function viewWeeklyTimeline() {
   });
 }
 function markLate(date, name, time, medIndex) {
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   const med = meds[medIndex];
   const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
   const doseKey = `${name}-${time}-${date}`;
@@ -310,7 +325,7 @@ function markLate(date, name, time, medIndex) {
   if (!logs[date].some(entry => entry.doseKey === doseKey)) {
     logs[date].push({ ...med, time, doseKey });
     med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
-    saveMeds();
+    localStorage.setItem(currentUser + '_medications', JSON.stringify(meds));
     localStorage.setItem(currentUser + '_medLogs', JSON.stringify(logs));
     showToast('Dose marked as taken.');
     viewWeeklyTimeline();
@@ -322,6 +337,7 @@ function markLate(date, name, time, medIndex) {
 // Adherence Chart (with destroy bug fix)
 function renderAdherenceChart() {
   hideAllSections();
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   document.getElementById('chartSection').style.display = 'block';
 
   const canvas = document.getElementById('adherenceChart');
@@ -386,7 +402,6 @@ function renderAdherenceChart() {
 // Dose History
 function showHistory() {
   hideAllSections();
-  document.getElementById('historySection').style.display = 'block';
   const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
   const historyDiv = document.getElementById('history');
   let html = '<table><tr><th>Date</th><th>Medication</th><th>Dose</th><th>Time</th></tr>';
@@ -397,6 +412,7 @@ function showHistory() {
   });
   html += '</table>';
   historyDiv.innerHTML = html;
+  document.getElementById('historySection').style.display = 'block';
 }
 
 // Export logs as CSV
@@ -425,6 +441,7 @@ function requestNotificationPermission() {
   }
 }
 function scheduleDoseReminders() {
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   meds.forEach(med => {
     med.times.forEach((time, idx) => {
       if (med.reminders && med.reminders[idx]) {
@@ -447,6 +464,7 @@ function scheduleDoseReminders() {
 
 // Missed Dose Notification
 function checkMissedDoses() {
+  meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];
   const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
