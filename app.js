@@ -1,12 +1,9 @@
-// All code wrapped in DOMContentLoaded so it never runs before the DOM is ready.
 document.addEventListener("DOMContentLoaded", function () {
 
-// Always get currentUser each action!
 function getCurrentUser() {
   return localStorage.getItem('currentUser');
 }
 
-// Utility
 function saveMeds(user, meds) {
   localStorage.setItem(user + '_medications', JSON.stringify(meds));
 }
@@ -23,7 +20,6 @@ function hideAllSections() {
   document.getElementById('historySection').style.display = 'none';
 }
 
-// Toast notification
 function showToast(msg, duration = 2000) {
   let toast = document.getElementById('toast');
   toast.textContent = msg;
@@ -31,7 +27,6 @@ function showToast(msg, duration = 2000) {
   setTimeout(() => { toast.style.display = 'none'; }, duration);
 }
 
-// Add Time Inputs dynamically for flexible dose times
 window.addTimeInput = function(value = "", reminder = false) {
   const div = document.createElement("div");
   div.className = "time-input-row";
@@ -42,11 +37,12 @@ window.addTimeInput = function(value = "", reminder = false) {
   `;
   document.getElementById('timeInputs').appendChild(div);
 };
-
-// Add at least one time input on load for new medication
 if (!document.querySelector('.dose-time-input')) addTimeInput();
 
-// Medication Form Logic (always reload user/meds)
+document.getElementById('recursDaily').addEventListener('change', function() {
+  document.getElementById('recurrencePeriod').style.display = this.checked ? 'none' : '';
+});
+
 document.getElementById('medForm').addEventListener('submit', function(e) {
   e.preventDefault();
   const user = getCurrentUser();
@@ -65,23 +61,59 @@ document.getElementById('medForm').addEventListener('submit', function(e) {
     showToast("Please fill out required fields.");
     return;
   }
+  // Recurrence logic
+  const recursDaily = document.getElementById('recursDaily').checked;
+  let recurrence;
+  if (recursDaily) {
+    recurrence = { type: "daily" };
+  } else {
+    const start = document.getElementById('recStart').value;
+    const end = document.getElementById('recEnd').value;
+    if (!start || !end) {
+      showToast("Please select start and end dates.");
+      return;
+    }
+    recurrence = { type: "period", start, end };
+  }
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   meds.push({
-    name,
-    dosage: `${qty}`,
-    times,
-    reminders,
-    notes,
-    stock: 0
+    name, dosage: `${qty}`, times, reminders, notes, stock: 0, recurrence
   });
   saveMeds(user, meds);
   renderMedsGrouped();
   document.getElementById('medForm').reset();
   document.getElementById('timeInputs').innerHTML = '';
   addTimeInput();
+  document.getElementById('recurrencePeriod').style.display = 'none';
+  document.getElementById('recursDaily').checked = true;
 });
 
-// Render Medications with notes, dose times, and reminders
+function getRunOutDate(med) {
+  let dosesPerDay = med.times.length * (parseInt(med.dosage) || 1);
+  if (dosesPerDay === 0) return null;
+  const today = new Date();
+  if (med.recurrence?.type === "period") {
+    const start = new Date(med.recurrence.start);
+    const end = new Date(med.recurrence.end);
+    if (isNaN(start) || isNaN(end) || end < today) return null;
+    // How many days left in period?
+    let daysLeft = Math.ceil((end - today) / (1000 * 60 * 60 * 24)) + 1;
+    let dosesLeft = daysLeft * dosesPerDay;
+    let daysTillRunOut = Math.floor((med.stock || 0) / dosesPerDay);
+    let runOut = new Date(today);
+    runOut.setDate(today.getDate() + daysTillRunOut);
+    // Never after the period ends
+    if (runOut > end) runOut = end;
+    return runOut.toISOString().split('T')[0];
+  } else {
+    // Recurring daily, just predict when stock runs out
+    let daysTillRunOut = Math.floor((med.stock || 0) / dosesPerDay);
+    let runOut = new Date(today);
+    runOut.setDate(today.getDate() + daysTillRunOut);
+    return runOut.toISOString().split('T')[0];
+  }
+}
+
 window.renderMedsGrouped = function() {
   hideAllSections();
   const user = getCurrentUser();
@@ -122,11 +154,30 @@ window.renderMedsGrouped = function() {
           </div>
         `;
       });
+      // Recurrence info
+      let recText = "";
+      if (item.recurrence?.type === "period") {
+        recText = `<br><strong>Period:</strong> ${item.recurrence.start} to ${item.recurrence.end}`;
+      } else {
+        recText = "<br><strong>Recurring:</strong> Daily";
+      }
+      // Run-out prediction
+      const runOutDate = getRunOutDate(item);
+      let runOutHTML = "";
+      if (runOutDate) {
+        const soon = (new Date(runOutDate) - new Date()) / (1000*60*60*24) < 7;
+        runOutHTML = `<div style="color:${soon?'red':'orange'};">
+          Expected to run out: <b>${runOutDate}</b>
+        </div>`;
+        if (soon) runOutHTML += `<div style="color:red;font-weight:bold;">⚠️ Low stock soon!</div>`;
+      }
       div.innerHTML = `
         <strong>Dose:</strong> ${item.dosage}<br>
         <strong>Notes:</strong> ${item.notes ? item.notes : ''}<br>
         <strong>Times:</strong><br>
         ${timesHtml}
+        ${recText}
+        ${runOutHTML}
         <br>
         <button class="mark-all-btn" onclick="markAllTaken(${item.index})">Mark All Taken</button>
         <button onclick="editMed(${item.index})">Edit</button>
@@ -138,7 +189,6 @@ window.renderMedsGrouped = function() {
   });
 };
 
-// Mark all doses for today as taken for a medication
 window.markAllTaken = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
@@ -166,7 +216,6 @@ window.markAllTaken = function(index) {
   }
 };
 
-// Mark a single dose as taken (for a specific time)
 window.markTaken = function(index, time) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
@@ -187,7 +236,6 @@ window.markTaken = function(index, time) {
   renderMedsGrouped();
 };
 
-// Edit and delete medications
 window.deleteMed = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
@@ -208,10 +256,21 @@ window.editMed = function(index) {
   med.times.forEach((t, i) => {
     addTimeInput(t, med.reminders && med.reminders[i]);
   });
+  // recurrence
+  if (med.recurrence?.type === "period") {
+    document.getElementById('recursDaily').checked = false;
+    document.getElementById('recurrencePeriod').style.display = '';
+    document.getElementById('recStart').value = med.recurrence.start;
+    document.getElementById('recEnd').value = med.recurrence.end;
+  } else {
+    document.getElementById('recursDaily').checked = true;
+    document.getElementById('recurrencePeriod').style.display = 'none';
+    document.getElementById('recStart').value = '';
+    document.getElementById('recEnd').value = '';
+  }
   deleteMed(index);
 };
 
-// Stock Manager
 window.showStockManager = function() {
   hideAllSections();
   const user = getCurrentUser();
@@ -245,7 +304,6 @@ window.updateStock = function(index) {
   }
 };
 
-// Collapsible Weekly View
 window.viewWeeklyTimeline = function() {
   hideAllSections();
   const user = getCurrentUser();
@@ -327,7 +385,6 @@ window.markLate = function(date, name, time, medIndex) {
   }
 };
 
-// Adherence Chart (with destroy bug fix)
 window.renderAdherenceChart = function() {
   hideAllSections();
   const user = getCurrentUser();
@@ -393,7 +450,6 @@ window.renderAdherenceChart = function() {
   });
 };
 
-// Dose History
 window.showHistory = function() {
   hideAllSections();
   const user = getCurrentUser();
@@ -410,7 +466,6 @@ window.showHistory = function() {
   document.getElementById('historySection').style.display = 'block';
 };
 
-// Export logs as CSV
 window.exportLogs = function() {
   const user = getCurrentUser();
   const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
@@ -430,7 +485,6 @@ window.exportLogs = function() {
   document.body.removeChild(link);
 };
 
-// Notifications/reminders
 function requestNotificationPermission() {
   if ('Notification' in window && Notification.permission !== 'granted') {
     Notification.requestPermission();
@@ -459,7 +513,6 @@ function scheduleDoseReminders() {
   });
 }
 
-// Missed Dose Notification
 function checkMissedDoses() {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
@@ -490,7 +543,6 @@ function checkMissedDoses() {
   }
 }
 
-// Startup/init
 function appStartup() {
   renderMedsGrouped();
   requestNotificationPermission();
@@ -500,4 +552,4 @@ function appStartup() {
 };
 appStartup();
 
-}); // End DOMContentLoaded
+});
