@@ -2,34 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Medication Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script defer src="app.js"></script>
+  <link rel="icon" href="icon-192.png" sizes="192x192" />
+  <meta name="theme-color" content="#007bff" />
 </head>
 <body>
   <header class="sticky-header">
     <h1>Medication Tracker</h1>
     <nav>
-      <button onclick="renderMedsGrouped()">📋 Medications</button>
-      <button onclick="showStockManager()">💊 Stock</button>
-      <button onclick="viewWeeklyTimeline()">📆 Weekly</button>
-      <button onclick="renderAdherenceChart()">📊 Chart</button>
-      <button onclick="showHistory()">🕓 History</button>
-      <button onclick="exportLogs()">📄 Export</button>
-      <button onclick="toggleTheme()" id="themeToggle">🌓</button>
-      <button onclick="switchUser()" style="float:right;">🔄 Switch User</button>
+      <button onclick="renderMedsGrouped()">Medications</button>
+      <button onclick="showStockManager()">Stock</button>
+      <button onclick="viewWeeklyTimeline()">Weekly</button>
+      <button onclick="renderAdherenceChart()">Adherence</button>
+      <button onclick="showHistory()">History</button>
+      <button onclick="exportLogs()">Export CSV</button>
+      <button onclick="location.href='user.html'">Switch User</button>
     </nav>
   </header>
   <main>
     <section id="medListSection">
-      <h2 class="section-title">Medications</h2>
+      <h2 class="section-title">Your Medications</h2>
       <div id="medList"></div>
+      <form id="medForm" autocomplete="off">
+        <input id="medName" type="text" placeholder="Medication Name" required maxlength="40" />
+        <input id="qty" type="number" placeholder="Dose Amount" required min="1" max="1000" />
+        <div id="timeInputs"></div>
+        <button type="button" onclick="addTimeInput()">+ Add Dose Time</button>
+        <textarea id="medNotes" placeholder="Instructions, e.g. take with food" rows="2" maxlength="120"></textarea>
+        <button type="submit">Add/Update Medication</button>
+      </form>
     </section>
     <section id="stockManagerSection" style="display:none;">
-      <h2 class="section-title">Stock Manager</h2>
+      <h2 class="section-title">Stock Management</h2>
       <div id="stockManager"></div>
     </section>
     <section id="weeklyViewSection" style="display:none;">
@@ -38,56 +46,29 @@
     </section>
     <section id="chartSection" style="display:none;">
       <h2 class="section-title">Adherence Chart</h2>
-      <canvas id="adherenceChart"></canvas>
-      <div style="margin:10px 0;">
-        <label for="chartRange">View:</label>
-        <select id="chartRange" onchange="renderAdherenceChart()">
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="all">All time</option>
-        </select>
-      </div>
+      <select id="chartRange" onchange="renderAdherenceChart()">
+        <option value="7">Last 7 Days</option>
+        <option value="30">Last 30 Days</option>
+        <option value="all">All</option>
+      </select>
+      <canvas id="adherenceChart" width="600" height="280"></canvas>
     </section>
     <section id="historySection" style="display:none;">
-      <h2 class="section-title">History</h2>
+      <h2 class="section-title">Dose History</h2>
       <div id="history"></div>
-      <button onclick="exportLogs()">Export History as CSV</button>
     </section>
-    <section id="calendarLog" class="calendar-view"></section>
-    <form id="medForm">
-      <input type="text" id="medName" placeholder="Medication Name" required />
-      <input type="number" id="qty" placeholder="Quantity per dose" required />
-      <input type="number" id="dosesPerDay" placeholder="Doses per day" required />
-      <div class="recurrence-options">
-        <label><input type="radio" name="repeatType" value="recurring" id="recurring" /> Recurring Daily</label>
-        <label><input type="radio" name="repeatType" value="fixed" id="fixedPeriod" /> Fixed Period</label>
-        <input type="number" id="weeks" placeholder="Weeks" style="display:none;" />
-      </div>
-      <button type="submit">Add Medication</button>
-    </form>
-    <button onclick="resetData()">🧹 Reset My Data</button>
-    <button onclick="exportLogs()">📤 Export My Medication Log</button>
   </main>
   <div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:8px;z-index:1000;"></div>
   <script>
-    function switchUser() {
-      localStorage.removeItem('currentUser');
+    // Redirect to user.html if no user is selected
+    if (!localStorage.getItem('currentUser')) {
       window.location.href = 'user.html';
     }
-    function toggleTheme() {
-      document.body.classList.toggle("dark");
-      localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
-    }
-    if (localStorage.getItem("theme") === "dark") {
-      document.body.classList.add("dark");
-    }
-    function resetData() {
-      if (confirm("This will erase all medication data for this user. Proceed?")) {
-        localStorage.removeItem(currentUser + '_medications');
-        localStorage.removeItem(currentUser + '_medLogs');
-        location.reload();
-      }
+    // Register service worker for PWA offline support
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
     }
   </script>
+  <script src="app.js"></script>
 </body>
 </html>
