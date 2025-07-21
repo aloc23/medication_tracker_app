@@ -1,75 +1,171 @@
-
-:root {
-  --bg: #ffffff;
-  --text: #111;
-  --accent: #007bff;
-}
-
-body.dark {
-  --bg: #121212;
-  --text: #f0f0f0;
-  --accent: #90caf9;
-}
-
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f4f6f8;
   margin: 0;
-  padding: 20px;
+  color: #222;
 }
-
-.container {
-  max-width: 700px;
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #004080;
+  color: #fff;
+  padding: 10px 0;
+  box-shadow: 0 2px 8px #0002;
+}
+.sticky-header nav {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: 10px;
+}
+.sticky-header nav button {
+  margin: 0 4px;
+  font-size: 1rem;
+  padding: 7px 15px;
+  background: #fff;
+  color: #004080;
+  border-radius: 4px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.sticky-header nav button:hover {
+  background: #cce0fa;
+}
+main {
+  padding: 24px;
+  max-width: 800px;
   margin: auto;
-  padding: 20px;
-  background: var(--bg);
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
-
-input, button, select {
-  padding: 8px 12px;
-  margin: 6px 4px;
-  font-size: 16px;
+.section-title {
+  margin-top: 32px;
+  margin-bottom: 8px;
+  font-size: 1.25rem;
+  color: #004080;
+}
+.med-card {
+  margin: 16px 0;
+  padding: 16px;
+  background: #fff;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  max-width: 100%;
+  box-shadow: 0 2px 8px #0001;
+  border-left: 5px solid #004080;
+  transition: box-shadow 0.2s, border-color 0.2s;
 }
-
+.med-card[open] {
+  box-shadow: 0 6px 20px #0002;
+  border-color: #0066cc;
+}
+.med-card summary {
+  font-size: 1.15rem;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.stock-badge, .stock-item {
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-left: 8px;
+  font-weight: bold;
+  font-size: 0.97em;
+  display: inline-block;
+}
+.stock-green { background: #e6ffed; color: #299c46; }
+.stock-orange { background: #fffbe6; color: #c99700; }
+.stock-red { background: #ffeaea; color: #d32f2f; }
+.stock-item {
+  margin: 8px 0;
+  border-left: 4px solid transparent;
+}
+.stock-item.stock-green { border-color: #299c46; }
+.stock-item.stock-orange { border-color: #c99700; }
+.stock-item.stock-red { border-color: #d32f2f; }
+input[type="number"] {
+  padding: 3px 6px;
+  border-radius: 3px;
+  border: 1px solid #bbb;
+  width: 60px;
+  margin-left: 10px;
+}
 button {
-  background: var(--accent);
+  margin-left: 8px;
+  margin-top: 4px;
+  background: #004080;
   color: #fff;
   border: none;
+  border-radius: 3px;
+  padding: 6px 12px;
   cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
 }
-
 button:hover {
   background: #0056b3;
 }
-
-#medList li {
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
+.weekly-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
 }
-
+.weekly-table th, .weekly-table td {
+  border: 1px solid #ccc;
+  padding: 7px;
+  text-align: center;
+}
 .calendar-day {
   padding: 10px;
   margin: 4px 0;
   border-left: 5px solid gray;
+  border-radius: 6px;
+  background: #f9f9f9;
 }
-
 .calendar-day.complete { border-color: green; }
 .calendar-day.partial { border-color: orange; }
 .calendar-day.missed  { border-color: red; }
 .calendar-day.future  { border-color: blue; }
-
 .med-group {
   padding: 10px;
   border-bottom: 1px solid #ddd;
 }
-
-button#themeToggle {
-  float: right;
-  margin-top: -40px;
+#history {
+  overflow-x: auto;
+}
+#history table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+#history th, #history td {
+  border: 1px solid #bbb;
+  padding: 5px 10px;
+}
+@media (max-width: 800px) {
+  main { padding: 8px; }
+  .sticky-header nav { flex-direction: column; align-items: flex-start; gap: 2px;}
+  .sticky-header nav button { font-size: 0.93rem; }
+}
+body.dark {
+  background: #222;
+  color: #f4f6f8;
+}
+body.dark main, body.dark .med-card, body.dark .calendar-day {
+  background: #2c3440;
+  color: #fff;
+}
+body.dark .sticky-header {
+  background: #122035;
+  color: #fff;
+}
+body.dark .sticky-header nav button {
+  background: #2c3440;
+  color: #cce0fa;
+}
+body.dark .sticky-header nav button:hover {
+  background: #003060;
 }
