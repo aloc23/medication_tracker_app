@@ -19,6 +19,20 @@ function hideAllSections() {
   document.getElementById('historySection').style.display = 'none';
 }
 
+// Toast notification
+function showToast(msg, duration = 2000) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = "toast";
+    toast.style = "display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:8px;z-index:1000;";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, duration);
+}
+
 // 1. Grouped Medications List (expandable, mark taken (one or all), edit/delete)
 function renderMedsGrouped() {
   hideAllSections();
@@ -42,13 +56,19 @@ function renderMedsGrouped() {
       const div = document.createElement('div');
       div.style.margin = '10px 0';
 
-      // Render times list with "Mark Taken" button for each
+      // Render times list with "Mark Taken" button for each, disabled if already taken
       let timesHtml = '';
+      const today = new Date().toISOString().split('T')[0];
+      const takenLog = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
       item.times.forEach(time => {
+        const isTaken = takenLog[today]?.some(e => e.name === item.name && e.time === time);
         timesHtml += `
           <div style="margin:2px 0;">
             <strong>Time:</strong> ${time}
-            <button onclick="markTaken(${item.index},'${time}')">Mark Taken</button>
+            <button onclick="markTaken(${item.index},'${time}')" ${isTaken ? "disabled" : ""}>
+              Mark Taken
+            </button>
+            ${isTaken ? "<span style='color:green;'>✔️</span>" : ""}
           </div>
         `;
       });
@@ -58,7 +78,7 @@ function renderMedsGrouped() {
         <strong>Times:</strong><br>
         ${timesHtml}
         <br>
-        <button onclick="markAllTaken(${item.index})">Mark All Taken</button>
+        <button class="mark-all-btn" onclick="markAllTaken(${item.index})">Mark All Taken</button>
         <button onclick="editMed(${item.index})">Edit</button>
         <button onclick="deleteMed(${item.index})">Delete</button>
       `;
@@ -88,7 +108,10 @@ function markAllTaken(index) {
     med.stock = Math.max(0, (med.stock || 0) - dosesMarked * parseInt(med.dosage));
     saveMeds();
     localStorage.setItem(currentUser + '_medLogs', JSON.stringify(log));
+    showToast(`Marked ${dosesMarked} dose(s) as taken.`);
     renderMedsGrouped();
+  } else {
+    showToast('All doses already marked as taken!');
   }
 }
 
@@ -99,11 +122,15 @@ function markTaken(index, time) {
   const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
   const doseKey = `${med.name}-${time}-${today}`;
   if (!log[today]) log[today] = [];
-  if (log[today].some(entry => entry.doseKey === doseKey)) return;
+  if (log[today].some(entry => entry.doseKey === doseKey)) {
+    showToast('Dose already marked as taken.');
+    return;
+  }
   log[today].push({ ...med, time, doseKey });
   med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
   saveMeds();
   localStorage.setItem(currentUser + '_medLogs', JSON.stringify(log));
+  showToast('Dose marked as taken.');
   renderMedsGrouped();
 }
 
@@ -120,6 +147,7 @@ function showStockManager() {
       <b>${med.name}</b> 
       <input type="number" id="stock-input-${i}" value="${med.stock || 0}" min="0">
       <button onclick="updateStock(${i})">Update</button>
+      ${(med.stock || 0) < 5 ? "<span class='low-stock-warning' style='color:red;font-weight:bold;margin-left:8px;'>⚠️ Low</span>" : ""}
     `;
     stockSection.appendChild(div);
   });
@@ -133,12 +161,12 @@ function updateStock(index) {
     meds[index].stock = value;
     saveMeds();
     showStockManager();
-    alert("Stock updated.");
-    if (value < 5) alert("⚠️ Low stock warning! Consider restocking soon.");
+    showToast("Stock updated.");
+    if (value < 5) showToast("⚠️ Low stock warning! Consider restocking soon.", 3000);
   }
 }
 
-// 3. Collapsible Weekly View
+// 3. Collapsible Weekly View (with missed, taken, upcoming, summary, mark late)
 function viewWeeklyTimeline() {
   hideAllSections();
   const weeklyView = document.getElementById('weeklyView');
@@ -150,6 +178,7 @@ function viewWeeklyTimeline() {
     d.setDate(d.getDate() - 6 + i);
     return d.toISOString().split('T')[0];
   });
+  const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
 
   meds.forEach((med, i) => {
     const details = document.createElement('details');
@@ -158,23 +187,64 @@ function viewWeeklyTimeline() {
     summary.textContent = `${med.name} - Weekly Overview`;
     details.appendChild(summary);
 
+    let missedThisMed = 0, takenThisMed = 0;
     let table = '<table class="weekly-table"><tr><th>Date</th>';
     med.times.forEach(t => table += `<th>${t}</th>`);
     table += '</tr>';
 
     days.forEach(date => {
-      table += `<tr><td>${date}</td>`;
+      table += `<tr><td>${(new Date(date)).toLocaleDateString()}</td>`;
       med.times.forEach(t => {
-        const takenLog = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
-        const taken = takenLog[date]?.some(e => e.name === med.name && e.time === t);
-        table += `<td style="color:${taken ? 'green' : 'red'};font-weight:bold;">${taken ? '✔' : '❌'}</td>`;
+        const now = new Date();
+        const [hour, minute] = t.split(':').map(Number);
+        const doseDateTime = new Date(date);
+        doseDateTime.setHours(hour, minute, 0, 0);
+        const isTaken = logs[date]?.some(e => e.name === med.name && e.time === t);
+        let status = '';
+        let cellClass = '';
+        if (isTaken) {
+          status = "✔️";
+          cellClass = "weekly-taken";
+          takenThisMed++;
+        } else if (doseDateTime < now) {
+          status = `<button class="mark-late-btn" onclick="markLate('${date}','${med.name}','${t}',${i})" title="Mark as taken late">❌</button>`;
+          cellClass = "weekly-missed";
+          missedThisMed++;
+        } else {
+          status = "⏳";
+          cellClass = "weekly-upcoming";
+        }
+        table += `<td class="${cellClass}">${status}</td>`;
       });
       table += '</tr>';
     });
     table += '</table>';
+    // Add summary
+    details.innerHTML += `<div style="margin:8px 0;">
+      <span style="color:green;">✔️ Taken: ${takenThisMed}</span> &nbsp;
+      <span style="color:red;">❌ Missed: ${missedThisMed}</span>
+    </div>`;
     details.innerHTML += table;
     weeklyView.appendChild(details);
   });
+}
+
+// Mark missed dose as taken late
+function markLate(date, name, time, medIndex) {
+  const med = meds[medIndex];
+  const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
+  const doseKey = `${name}-${time}-${date}`;
+  if (!logs[date]) logs[date] = [];
+  if (!logs[date].some(entry => entry.doseKey === doseKey)) {
+    logs[date].push({ ...med, time, doseKey });
+    med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
+    saveMeds();
+    localStorage.setItem(currentUser + '_medLogs', JSON.stringify(logs));
+    showToast('Dose marked as taken.');
+    viewWeeklyTimeline();
+  } else {
+    showToast('Dose already marked as taken.');
+  }
 }
 
 // 4. Adherence Chart (with selectable range)
@@ -283,7 +353,7 @@ document.getElementById('medForm').addEventListener('submit', e => {
   const weeks = parseInt(document.getElementById('weeks').value);
 
   if (!name || isNaN(qty) || isNaN(doses)) {
-    alert("Please fill out required fields.");
+    showToast("Please fill out required fields.");
     return;
   }
 
@@ -344,9 +414,42 @@ function scheduleDoseReminders() {
   });
 }
 
-// 10. Startup/init
+// 10. Missed Dose Notification
+function checkMissedDoses() {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
+  let missed = [];
+
+  meds.forEach(med => {
+    med.times.forEach(time => {
+      const [hour, minute] = time.split(':').map(Number);
+      const doseTime = new Date();
+      doseTime.setHours(hour, minute, 0, 0);
+      if (doseTime < now) {
+        const isTaken = logs[todayStr]?.some(e => e.name === med.name && e.time === time);
+        if (!isTaken) {
+          missed.push({ med: med.name, time });
+          // Browser notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(`Missed dose: ${med.name} at ${time}`);
+          }
+        }
+      }
+    });
+  });
+
+  // Optionally, show missed doses in-app (e.g., toast or warning area)
+  if (missed.length > 0) {
+    showToast(`Missed ${missed.length} dose(s) today!`, 3500);
+  }
+}
+
+// 11. Startup/init
 window.onload = function() {
   renderMedsGrouped();
   requestNotificationPermission();
   scheduleDoseReminders();
+  checkMissedDoses();
+  setInterval(checkMissedDoses, 60 * 1000); // re-check every minute
 };
