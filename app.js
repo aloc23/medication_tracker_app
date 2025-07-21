@@ -19,7 +19,7 @@ function hideAllSections() {
   document.getElementById('historySection').style.display = 'none';
 }
 
-// 1. Grouped Medications List (expandable, mark taken, edit/delete)
+// 1. Grouped Medications List (expandable, mark taken (one or all), edit/delete)
 function renderMedsGrouped() {
   hideAllSections();
   const medList = document.getElementById('medList');
@@ -41,10 +41,24 @@ function renderMedsGrouped() {
     group.forEach(item => {
       const div = document.createElement('div');
       div.style.margin = '10px 0';
+
+      // Render times list with "Mark Taken" button for each
+      let timesHtml = '';
+      item.times.forEach(time => {
+        timesHtml += `
+          <div style="margin:2px 0;">
+            <strong>Time:</strong> ${time}
+            <button onclick="markTaken(${item.index},'${time}')">Mark Taken</button>
+          </div>
+        `;
+      });
+
       div.innerHTML = `
         <strong>Dose:</strong> ${item.dosage}<br>
-        <strong>Times:</strong> ${item.times?.join(', ') || 'N/A'}<br>
-        <button onclick="markTaken(${item.index},'${item.times[0]}')">Mark First Dose Taken</button>
+        <strong>Times:</strong><br>
+        ${timesHtml}
+        <br>
+        <button onclick="markAllTaken(${item.index})">Mark All Taken</button>
         <button onclick="editMed(${item.index})">Edit</button>
         <button onclick="deleteMed(${item.index})">Delete</button>
       `;
@@ -52,6 +66,45 @@ function renderMedsGrouped() {
     });
     medList.appendChild(details);
   });
+}
+
+// Mark all doses for today as taken for a medication
+function markAllTaken(index) {
+  const med = meds[index];
+  const today = new Date().toISOString().split('T')[0];
+  const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
+  if (!log[today]) log[today] = [];
+
+  let dosesMarked = 0;
+  med.times.forEach(time => {
+    const doseKey = `${med.name}-${time}-${today}`;
+    if (!log[today].some(entry => entry.doseKey === doseKey)) {
+      log[today].push({ ...med, time, doseKey });
+      dosesMarked++;
+    }
+  });
+
+  if (dosesMarked > 0) {
+    med.stock = Math.max(0, (med.stock || 0) - dosesMarked * parseInt(med.dosage));
+    saveMeds();
+    localStorage.setItem(currentUser + '_medLogs', JSON.stringify(log));
+    renderMedsGrouped();
+  }
+}
+
+// Mark a single dose as taken (for a specific time)
+function markTaken(index, time) {
+  const med = meds[index];
+  const today = new Date().toISOString().split('T')[0];
+  const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
+  const doseKey = `${med.name}-${time}-${today}`;
+  if (!log[today]) log[today] = [];
+  if (log[today].some(entry => entry.doseKey === doseKey)) return;
+  log[today].push({ ...med, time, doseKey });
+  med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
+  saveMeds();
+  localStorage.setItem(currentUser + '_medLogs', JSON.stringify(log));
+  renderMedsGrouped();
 }
 
 // 2. Stock Manager
@@ -70,6 +123,19 @@ function showStockManager() {
     `;
     stockSection.appendChild(div);
   });
+}
+
+// Update stock handler
+function updateStock(index) {
+  const input = document.getElementById(`stock-input-${index}`);
+  const value = parseInt(input.value);
+  if (!isNaN(value)) {
+    meds[index].stock = value;
+    saveMeds();
+    showStockManager();
+    alert("Stock updated.");
+    if (value < 5) alert("⚠️ Low stock warning! Consider restocking soon.");
+  }
 }
 
 // 3. Collapsible Weekly View
@@ -162,31 +228,7 @@ function showHistory() {
   historyDiv.innerHTML = html;
 }
 
-// 6. Stock and Med Operations
-function updateStock(index) {
-  const input = document.getElementById(`stock-input-${index}`);
-  const value = parseInt(input.value);
-  if (!isNaN(value)) {
-    meds[index].stock = value;
-    saveMeds();
-    showStockManager();
-    alert("Stock updated.");
-    if (value < 5) alert("⚠️ Low stock warning! Consider restocking soon.");
-  }
-}
-function markTaken(index, time) {
-  const med = meds[index];
-  const today = new Date().toISOString().split('T')[0];
-  const log = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
-  const doseKey = `${med.name}-${time}-${today}`;
-  if (!log[today]) log[today] = [];
-  if (log[today].some(entry => entry.doseKey === doseKey)) return;
-  log[today].push({ ...med, time, doseKey });
-  med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
-  saveMeds();
-  localStorage.setItem(currentUser + '_medLogs', JSON.stringify(log));
-  renderMedsGrouped();
-}
+// 6. Med Operations
 function deleteMed(index) {
   if (confirm("Delete this medication schedule?")) {
     meds.splice(index, 1);
