@@ -166,7 +166,7 @@ function updateStock(index) {
   }
 }
 
-// 3. Collapsible Weekly View (with missed, taken, upcoming, summary, mark late)
+// 3. Collapsible Weekly View
 function viewWeeklyTimeline() {
   hideAllSections();
   const weeklyView = document.getElementById('weeklyView');
@@ -247,20 +247,21 @@ function markLate(date, name, time, medIndex) {
   }
 }
 
-// 4. Adherence Chart (with selectable range)
+// 4. Adherence Chart (fixed destroy bug)
 function renderAdherenceChart() {
   hideAllSections();
   document.getElementById('chartSection').style.display = 'block';
 
-  // Defensive: clear the canvas for Chart.js if needed
   const canvas = document.getElementById('adherenceChart');
-  // If a previous chart exists, destroy it first
-  if (window.adherenceChart) {
+  // SAFELY destroy previous chart if it exists
+  if (
+    window.adherenceChart &&
+    typeof window.adherenceChart.destroy === "function"
+  ) {
     window.adherenceChart.destroy();
     window.adherenceChart = null;
   }
 
-  // Get range (last 7, 30 or all)
   const range = document.getElementById('chartRange')?.value || "7";
   const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
   let allDates = Object.keys(logs).sort();
@@ -268,12 +269,10 @@ function renderAdherenceChart() {
     allDates = allDates.slice(-parseInt(range));
   }
   const days = allDates;
-  // Count expected per day (for y axis)
   const expectedPerDay = meds.reduce((sum, m) => sum + (m.times?.length || 0), 0);
-  // How many actually taken per day
   const takenCounts = days.map(date => logs[date]?.length || 0);
 
-  // If there is no data, show a message
+  // Handle empty data
   if (days.length === 0) {
     canvas.style.display = "none";
     if (!document.getElementById("noChartMsg")) {
