@@ -61,7 +61,6 @@
     function deleteUser(user) {
       let users = getUsers().filter(u => u !== user);
       setUsers(users);
-      // Optionally clear user data
       localStorage.removeItem(user + '_medications');
       localStorage.removeItem(user + '_medLogs');
       renderUsers();
