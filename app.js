@@ -1,3 +1,6 @@
+// All code is now wrapped in DOMContentLoaded to ensure elements exist.
+document.addEventListener("DOMContentLoaded", function () {
+
 // Always get currentUser each action!
 function getCurrentUser() {
   return localStorage.getItem('currentUser');
@@ -29,7 +32,7 @@ function showToast(msg, duration = 2000) {
 }
 
 // Add Time Inputs dynamically for flexible dose times
-function addTimeInput(value = "", reminder = false) {
+window.addTimeInput = function(value = "", reminder = false) {
   const div = document.createElement("div");
   div.className = "time-input-row";
   div.innerHTML = `
@@ -38,16 +41,13 @@ function addTimeInput(value = "", reminder = false) {
     <button type="button" onclick="this.parentNode.remove()">×</button>
   `;
   document.getElementById('timeInputs').appendChild(div);
-}
+};
 
 // Add at least one time input on load for new medication
-document.addEventListener("DOMContentLoaded", () => {
-  if (!document.querySelector('.dose-time-input')) addTimeInput();
-  renderMedsGrouped();
-});
+if (!document.querySelector('.dose-time-input')) addTimeInput();
 
 // Medication Form Logic (always reload user/meds)
-document.getElementById('medForm').addEventListener('submit', e => {
+document.getElementById('medForm').addEventListener('submit', function(e) {
   e.preventDefault();
   const user = getCurrentUser();
   const name = document.getElementById('medName').value.trim();
@@ -82,7 +82,7 @@ document.getElementById('medForm').addEventListener('submit', e => {
 });
 
 // Render Medications with notes, dose times, and reminders
-function renderMedsGrouped() {
+window.renderMedsGrouped = function() {
   hideAllSections();
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
@@ -136,10 +136,10 @@ function renderMedsGrouped() {
     });
     medList.appendChild(details);
   });
-}
+};
 
 // Mark all doses for today as taken for a medication
-function markAllTaken(index) {
+window.markAllTaken = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   const med = meds[index];
@@ -164,10 +164,10 @@ function markAllTaken(index) {
   } else {
     showToast('All doses already marked as taken!');
   }
-}
+};
 
 // Mark a single dose as taken (for a specific time)
-function markTaken(index, time) {
+window.markTaken = function(index, time) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   const med = meds[index];
@@ -185,10 +185,10 @@ function markTaken(index, time) {
   localStorage.setItem(user + '_medLogs', JSON.stringify(log));
   showToast('Dose marked as taken.');
   renderMedsGrouped();
-}
+};
 
 // Edit and delete medications
-function deleteMed(index) {
+window.deleteMed = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   if (confirm("Delete this medication schedule?")) {
@@ -196,8 +196,8 @@ function deleteMed(index) {
     saveMeds(user, meds);
     renderMedsGrouped();
   }
-}
-function editMed(index) {
+};
+window.editMed = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   const med = meds[index];
@@ -209,10 +209,10 @@ function editMed(index) {
     addTimeInput(t, med.reminders && med.reminders[i]);
   });
   deleteMed(index);
-}
+};
 
 // Stock Manager
-function showStockManager() {
+window.showStockManager = function() {
   hideAllSections();
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
@@ -230,8 +230,8 @@ function showStockManager() {
     `;
     stockSection.appendChild(div);
   });
-}
-function updateStock(index) {
+};
+window.updateStock = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   const input = document.getElementById(`stock-input-${index}`);
@@ -243,10 +243,10 @@ function updateStock(index) {
     showToast("Stock updated.");
     if (value < 5) showToast("⚠️ Low stock warning! Consider restocking soon.", 3000);
   }
-}
+};
 
 // Collapsible Weekly View
-function viewWeeklyTimeline() {
+window.viewWeeklyTimeline = function() {
   hideAllSections();
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
@@ -307,8 +307,8 @@ function viewWeeklyTimeline() {
     details.innerHTML += table;
     weeklyView.appendChild(details);
   });
-}
-function markLate(date, name, time, medIndex) {
+};
+window.markLate = function(date, name, time, medIndex) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   const med = meds[medIndex];
@@ -325,10 +325,10 @@ function markLate(date, name, time, medIndex) {
   } else {
     showToast('Dose already marked as taken.');
   }
-}
+};
 
 // Adherence Chart (with destroy bug fix)
-function renderAdherenceChart() {
+window.renderAdherenceChart = function() {
   hideAllSections();
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
@@ -391,10 +391,10 @@ function renderAdherenceChart() {
       }
     }
   });
-}
+};
 
 // Dose History
-function showHistory() {
+window.showHistory = function() {
   hideAllSections();
   const user = getCurrentUser();
   const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
@@ -408,10 +408,10 @@ function showHistory() {
   html += '</table>';
   historyDiv.innerHTML = html;
   document.getElementById('historySection').style.display = 'block';
-}
+};
 
 // Export logs as CSV
-function exportLogs() {
+window.exportLogs = function() {
   const user = getCurrentUser();
   const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
   let csv = "Date,Medication,Time,Dose\n";
@@ -428,7 +428,7 @@ function exportLogs() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-}
+};
 
 // Notifications/reminders
 function requestNotificationPermission() {
@@ -491,10 +491,13 @@ function checkMissedDoses() {
 }
 
 // Startup/init
-window.onload = function() {
+function appStartup() {
   renderMedsGrouped();
   requestNotificationPermission();
   scheduleDoseReminders();
   checkMissedDoses();
   setInterval(checkMissedDoses, 60 * 1000);
 };
+appStartup();
+
+}); // End DOMContentLoaded
