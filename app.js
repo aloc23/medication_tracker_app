@@ -33,7 +33,7 @@ function showToast(msg, duration = 2000) {
   setTimeout(() => { toast.style.display = 'none'; }, duration);
 }
 
-// 1. Grouped Medications List (expandable, mark taken (one or all), edit/delete)
+// 1. Grouped Medications List
 function renderMedsGrouped() {
   hideAllSections();
   const medList = document.getElementById('medList');
@@ -339,7 +339,6 @@ function deleteMed(index) {
   }
 }
 function editMed(index) {
-  // For full-featured editing, add a modal or pre-fill the form and update on submit
   const med = meds[index];
   document.getElementById('medName').value = med.name;
   document.getElementById('qty').value = med.dosage;
@@ -352,7 +351,7 @@ function editMed(index) {
     document.getElementById('weeks').value = med.weeks || '';
     document.getElementById('weeks').style.display = 'inline';
   }
-  deleteMed(index); // Remove old, will re-add when submitted
+  deleteMed(index);
 }
 
 // 7. Export
@@ -471,7 +470,6 @@ function checkMissedDoses() {
     });
   });
 
-  // Optionally, show missed doses in-app (e.g., toast or warning area)
   if (missed.length > 0) {
     showToast(`Missed ${missed.length} dose(s) today!`, 3500);
   }
