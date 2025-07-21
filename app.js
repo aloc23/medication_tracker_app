@@ -1,5 +1,9 @@
-// User/session
-const currentUser = localStorage.getItem('currentUser') || 'gary';
+// Redirect to user.html if no user is selected
+if (!localStorage.getItem('currentUser')) {
+  window.location.href = 'user.html';
+}
+
+const currentUser = localStorage.getItem('currentUser');
 let meds = JSON.parse(localStorage.getItem(currentUser + '_medications')) || [];
 
 // Utility
@@ -33,7 +37,60 @@ function showToast(msg, duration = 2000) {
   setTimeout(() => { toast.style.display = 'none'; }, duration);
 }
 
-// 1. Grouped Medications List
+// Add Time Inputs dynamically for flexible dose times
+function addTimeInput(value = "", reminder = false) {
+  const div = document.createElement("div");
+  div.className = "time-input-row";
+  div.innerHTML = `
+    <input type="time" class="dose-time-input" value="${value}">
+    <label><input type="checkbox" class="reminder-checkbox" ${reminder ? "checked" : ""}> Reminder</label>
+    <button type="button" onclick="this.parentNode.remove()">×</button>
+  `;
+  document.getElementById('timeInputs').appendChild(div);
+}
+
+// Add at least one time input on load for new medication
+document.addEventListener("DOMContentLoaded", () => {
+  if (!document.querySelector('.dose-time-input')) addTimeInput();
+  renderMedsGrouped();
+});
+
+// Medication Form Logic
+document.getElementById('medForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = document.getElementById('medName').value.trim();
+  const qty = parseInt(document.getElementById('qty').value);
+  const notes = document.getElementById('medNotes').value.trim();
+  let times = [];
+  let reminders = [];
+  document.querySelectorAll('.dose-time-input').forEach((input, i) => {
+    const time = input.value;
+    if (time) {
+      times.push(time);
+      reminders.push(input.parentNode.querySelector('.reminder-checkbox').checked);
+    }
+  });
+  if (!name || isNaN(qty) || times.length === 0) {
+    showToast("Please fill out required fields.");
+    return;
+  }
+  const newMed = {
+    name,
+    dosage: `${qty}`,
+    times,
+    reminders,
+    notes,
+    stock: 0
+  };
+  meds.push(newMed);
+  saveMeds();
+  renderMedsGrouped();
+  document.getElementById('medForm').reset();
+  document.getElementById('timeInputs').innerHTML = '';
+  addTimeInput();
+});
+
+// Render Medications with notes, dose times, and reminders
 function renderMedsGrouped() {
   hideAllSections();
   const medList = document.getElementById('medList');
@@ -55,16 +112,16 @@ function renderMedsGrouped() {
     group.forEach(item => {
       const div = document.createElement('div');
       div.style.margin = '10px 0';
-
-      // Render times list with "Mark Taken" button for each, disabled if already taken
       let timesHtml = '';
       const today = new Date().toISOString().split('T')[0];
       const takenLog = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
-      item.times.forEach(time => {
+      item.times.forEach((time, idx) => {
+        const hasReminder = item.reminders && item.reminders[idx];
         const isTaken = takenLog[today]?.some(e => e.name === item.name && e.time === time);
         timesHtml += `
           <div style="margin:2px 0;">
             <strong>Time:</strong> ${time}
+            ${hasReminder ? "⏰" : ""}
             <button onclick="markTaken(${item.index},'${time}')" ${isTaken ? "disabled" : ""}>
               Mark Taken
             </button>
@@ -72,9 +129,9 @@ function renderMedsGrouped() {
           </div>
         `;
       });
-
       div.innerHTML = `
         <strong>Dose:</strong> ${item.dosage}<br>
+        <strong>Notes:</strong> ${item.notes ? item.notes : ''}<br>
         <strong>Times:</strong><br>
         ${timesHtml}
         <br>
@@ -134,7 +191,27 @@ function markTaken(index, time) {
   renderMedsGrouped();
 }
 
-// 2. Stock Manager
+// Edit and delete medications
+function deleteMed(index) {
+  if (confirm("Delete this medication schedule?")) {
+    meds.splice(index, 1);
+    saveMeds();
+    renderMedsGrouped();
+  }
+}
+function editMed(index) {
+  const med = meds[index];
+  document.getElementById('medName').value = med.name;
+  document.getElementById('qty').value = med.dosage;
+  document.getElementById('medNotes').value = med.notes || '';
+  document.getElementById('timeInputs').innerHTML = '';
+  med.times.forEach((t, i) => {
+    addTimeInput(t, med.reminders && med.reminders[i]);
+  });
+  deleteMed(index);
+}
+
+// Stock Manager
 function showStockManager() {
   hideAllSections();
   const stockSection = document.getElementById('stockManager');
@@ -152,8 +229,6 @@ function showStockManager() {
     stockSection.appendChild(div);
   });
 }
-
-// Update stock handler
 function updateStock(index) {
   const input = document.getElementById(`stock-input-${index}`);
   const value = parseInt(input.value);
@@ -166,7 +241,7 @@ function updateStock(index) {
   }
 }
 
-// 3. Collapsible Weekly View
+// Collapsible Weekly View
 function viewWeeklyTimeline() {
   hideAllSections();
   const weeklyView = document.getElementById('weeklyView');
@@ -219,7 +294,6 @@ function viewWeeklyTimeline() {
       table += '</tr>';
     });
     table += '</table>';
-    // Add summary
     details.innerHTML += `<div style="margin:8px 0;">
       <span style="color:green;">✔️ Taken: ${takenThisMed}</span> &nbsp;
       <span style="color:red;">❌ Missed: ${missedThisMed}</span>
@@ -228,8 +302,6 @@ function viewWeeklyTimeline() {
     weeklyView.appendChild(details);
   });
 }
-
-// Mark missed dose as taken late
 function markLate(date, name, time, medIndex) {
   const med = meds[medIndex];
   const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
@@ -247,13 +319,12 @@ function markLate(date, name, time, medIndex) {
   }
 }
 
-// 4. Adherence Chart (fixed destroy bug)
+// Adherence Chart (with destroy bug fix)
 function renderAdherenceChart() {
   hideAllSections();
   document.getElementById('chartSection').style.display = 'block';
 
   const canvas = document.getElementById('adherenceChart');
-  // SAFELY destroy previous chart if it exists
   if (
     window.adherenceChart &&
     typeof window.adherenceChart.destroy === "function"
@@ -272,7 +343,6 @@ function renderAdherenceChart() {
   const expectedPerDay = meds.reduce((sum, m) => sum + (m.times?.length || 0), 0);
   const takenCounts = days.map(date => logs[date]?.length || 0);
 
-  // Handle empty data
   if (days.length === 0) {
     canvas.style.display = "none";
     if (!document.getElementById("noChartMsg")) {
@@ -313,7 +383,7 @@ function renderAdherenceChart() {
   });
 }
 
-// 5. History View
+// Dose History
 function showHistory() {
   hideAllSections();
   document.getElementById('historySection').style.display = 'block';
@@ -329,31 +399,7 @@ function showHistory() {
   historyDiv.innerHTML = html;
 }
 
-// 6. Med Operations
-function deleteMed(index) {
-  if (confirm("Delete this medication schedule?")) {
-    meds.splice(index, 1);
-    saveMeds();
-    renderMedsGrouped();
-  }
-}
-function editMed(index) {
-  const med = meds[index];
-  document.getElementById('medName').value = med.name;
-  document.getElementById('qty').value = med.dosage;
-  document.getElementById('dosesPerDay').value = med.times.length;
-  if (med.recurring) {
-    document.getElementById('recurring').checked = true;
-    document.getElementById('weeks').style.display = 'none';
-  } else {
-    document.getElementById('fixedPeriod').checked = true;
-    document.getElementById('weeks').value = med.weeks || '';
-    document.getElementById('weeks').style.display = 'inline';
-  }
-  deleteMed(index);
-}
-
-// 7. Export
+// Export logs as CSV
 function exportLogs() {
   const logs = JSON.parse(localStorage.getItem(currentUser + '_medLogs')) || {};
   let csv = "Date,Medication,Time,Dose\n";
@@ -372,54 +418,7 @@ function exportLogs() {
   document.body.removeChild(link);
 }
 
-// 8. Form for Adding/Editing Meds
-document.getElementById('medForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const name = document.getElementById('medName').value.trim();
-  const qty = parseInt(document.getElementById('qty').value);
-  const doses = parseInt(document.getElementById('dosesPerDay').value);
-  const recurring = document.getElementById('recurring').checked;
-  const fixed = document.getElementById('fixedPeriod').checked;
-  const weeks = parseInt(document.getElementById('weeks').value);
-
-  if (!name || isNaN(qty) || isNaN(doses)) {
-    showToast("Please fill out required fields.");
-    return;
-  }
-
-  const times = [];
-  const baseHour = 8;
-  for (let i = 0; i < doses; i++) {
-    const hour = String(baseHour + i * Math.floor(12 / doses)).padStart(2, '0');
-    times.push(`${hour}:00`);
-  }
-
-  const newMed = {
-    name,
-    dosage: `${qty}`,
-    times,
-    stock: 0,
-    recurring,
-    weeks: fixed ? weeks : null
-  };
-
-  meds.push(newMed);
-  saveMeds();
-  renderMedsGrouped();
-  document.getElementById('medForm').reset();
-  document.getElementById('weeks').style.display = 'none';
-});
-document.getElementById('fixedPeriod').addEventListener('change', () => {
-  document.getElementById('weeks').style.display = 'inline';
-});
-document.getElementById('recurring').addEventListener('change', () => {
-  if (document.getElementById('recurring').checked) {
-    document.getElementById('weeks').style.display = 'none';
-    document.getElementById('fixedPeriod').checked = false;
-  }
-});
-
-// 9. Notifications/reminders
+// Notifications/reminders
 function requestNotificationPermission() {
   if ('Notification' in window && Notification.permission !== 'granted') {
     Notification.requestPermission();
@@ -427,24 +426,26 @@ function requestNotificationPermission() {
 }
 function scheduleDoseReminders() {
   meds.forEach(med => {
-    med.times.forEach(time => {
-      const now = new Date();
-      const [hour, minute] = time.split(':').map(Number);
-      const target = new Date();
-      target.setHours(hour, minute, 0, 0);
-      if (target > now) {
-        const timeout = target.getTime() - now.getTime();
-        setTimeout(() => {
-          if (Notification.permission === 'granted') {
-            new Notification(`Time to take ${med.name} (${med.dosage})`);
-          }
-        }, timeout);
+    med.times.forEach((time, idx) => {
+      if (med.reminders && med.reminders[idx]) {
+        const now = new Date();
+        const [hour, minute] = time.split(':').map(Number);
+        const target = new Date();
+        target.setHours(hour, minute, 0, 0);
+        if (target > now) {
+          const timeout = target.getTime() - now.getTime();
+          setTimeout(() => {
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(`Time to take ${med.name} (${med.dosage})`);
+            }
+          }, timeout);
+        }
       }
     });
   });
 }
 
-// 10. Missed Dose Notification
+// Missed Dose Notification
 function checkMissedDoses() {
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];
@@ -460,7 +461,6 @@ function checkMissedDoses() {
         const isTaken = logs[todayStr]?.some(e => e.name === med.name && e.time === time);
         if (!isTaken) {
           missed.push({ med: med.name, time });
-          // Browser notification
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification(`Missed dose: ${med.name} at ${time}`);
           }
@@ -474,11 +474,11 @@ function checkMissedDoses() {
   }
 }
 
-// 11. Startup/init
+// Startup/init
 window.onload = function() {
   renderMedsGrouped();
   requestNotificationPermission();
   scheduleDoseReminders();
   checkMissedDoses();
-  setInterval(checkMissedDoses, 60 * 1000); // re-check every minute
+  setInterval(checkMissedDoses, 60 * 1000);
 };
