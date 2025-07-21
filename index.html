@@ -33,18 +33,17 @@
         <div id="timeInputs"></div>
         <button type="button" onclick="addTimeInput()">+ Add Dose Time</button>
         <textarea id="medNotes" placeholder="Instructions, e.g. take with food" rows="2" maxlength="120"></textarea>
-<!-- ...other form fields... -->
-<div style="margin: 8px 0;">
-  <label>
-    <input type="checkbox" id="recursDaily" checked>
-    Repeat Daily
-  </label>
-</div>
-<div id="recurrencePeriod" style="display:none; margin-bottom: 12px;">
-  <label>Start date: <input type="date" id="recStart"></label>
-  <label style="margin-left:8px;">End date: <input type="date" id="recEnd"></label>
-</div>
-<button type="submit">Add/Update Medication</button>
+        <div style="margin: 8px 0;">
+          <label>
+            <input type="checkbox" id="recursDaily" checked>
+            Repeat Daily
+          </label>
+        </div>
+        <div id="recurrencePeriod" style="display:none; margin-bottom: 12px;">
+          <label>Start date: <input type="date" id="recStart"></label>
+          <label style="margin-left:8px;">End date: <input type="date" id="recEnd"></label>
+        </div>
+        <button type="submit">Add/Update Medication</button>
       </form>
     </section>
     <section id="stockManagerSection" style="display:none;">
@@ -62,24 +61,14 @@
         <option value="30">Last 30 Days</option>
         <option value="all">All</option>
       </select>
-      <canvas id="adherenceChart" width="600" height="280"></canvas>
+      <canvas id="adherenceChart" style="width:100%;max-width:600px;height:300px;margin-top:10px;"></canvas>
     </section>
     <section id="historySection" style="display:none;">
       <h2 class="section-title">Dose History</h2>
       <div id="history"></div>
     </section>
+    <div id="toast" style="display:none;position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 26px;border-radius:8px;font-size:1.1em;z-index:9999;box-shadow:0 2px 20px rgba(0,0,0,0.07);"></div>
   </main>
-  <div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:8px;z-index:1000;"></div>
-  <script>
-    // Redirect to user.html if no user is selected
-    if (!localStorage.getItem('currentUser')) {
-      window.location.href = 'user.html';
-    }
-    // Register service worker for PWA offline support
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
-    }
-  </script>
   <script src="app.js"></script>
 </body>
 </html>
