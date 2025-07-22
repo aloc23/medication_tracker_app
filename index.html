@@ -26,10 +26,14 @@
     </nav>
   </header>
   <main>
-    <section id="medListSection">
-      <h2 class="section-title">Your Medications</h2>
-      <div id="medList"></div>
-    </section>
+<section id="medListSection">
+  <h2 class="section-title">Your Medications</h2>
+  <div id="medList"></div>
+  <div id="medListExportBtns" style="margin:12px 0;">
+    <button onclick="exportMedListPDF()">Export Med List as PDF</button>
+    <button onclick="exportMedListJPEG()">Export Med List as JPEG</button>
+  </div>
+</section>
     <section id="addMedSection" style="display:none;">
       <h2 class="section-title" id="addMedSectionTitle">Add Medication</h2>
       <form id="addMedForm" autocomplete="off">
