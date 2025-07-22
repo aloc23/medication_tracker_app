@@ -288,7 +288,46 @@ window.deleteMed = function(index) {
   }
 };
 
-// ===== Medication Change History =====
+// ===== Medication Change History (Sidebar/Collapsible/Export) =====
+
+window.showMedChangeHistory = function() {
+  hideAllSections();
+  document.getElementById("medChangeHistorySection").style.display = "block";
+  renderMedChangeHistorySidebar();
+};
+
+function renderMedChangeHistorySidebar() {
+  const history = getMedChangeHistory();
+  const outer = document.getElementById('medChangeHistorySection');
+  outer.innerHTML = `
+    <h2 class="section-title">Medication Change History</h2>
+    <div style="display:flex; gap:24px;">
+      <div style="min-width:170px;">
+        <ul id="changeDatesList" style="list-style:none;padding:0;margin:0;"></ul>
+      </div>
+      <div style="flex:1;">
+        <div id="changeHistoryDetail"></div>
+      </div>
+    </div>
+  `;
+  renderSidebar(history);
+  if (history.length > 1) renderChangeDetail(history, history.length - 1);
+}
+
+function renderSidebar(history) {
+  const list = document.getElementById('changeDatesList');
+  list.innerHTML = '';
+  history.slice(1).forEach((entry, idx) => {
+    const li = document.createElement('li');
+    li.textContent = new Date(entry.date).toLocaleDateString();
+    li.style.cursor = 'pointer';
+    li.style.padding = "7px 10px";
+    li.style.marginBottom = "4px";
+    li.onclick = () => renderChangeDetail(history, idx+1);
+    li.id = `change-date-li-${idx+1}`;
+    list.appendChild(li);
+  });
+}
 
 function getMedChangeHistoryKey() {
   return getCurrentUser() + '_medChangeHistory';
@@ -312,92 +351,82 @@ function getMedChangeHistory() {
   return JSON.parse(localStorage.getItem(getMedChangeHistoryKey())) || [];
 }
 
-function diffMedLists(oldList, newList) {
+function diffMedLists(before, after) {
   function medKey(med) { return med.name.toLowerCase(); }
-  const oldMap = Object.fromEntries(oldList.map(m => [medKey(m), m]));
-  const newMap = Object.fromEntries(newList.map(m => [medKey(m), m]));
+  const beforeMap = Object.fromEntries(before.map(m => [medKey(m), m]));
+  const afterMap = Object.fromEntries(after.map(m => [medKey(m), m]));
   const added = [];
   const removed = [];
   const changed = [];
-  for (const key in oldMap) {
-    if (!newMap[key]) removed.push(oldMap[key]);
+  for (const key in beforeMap) {
+    if (!afterMap[key]) removed.push(beforeMap[key]);
     else {
-      const o = oldMap[key], n = newMap[key];
+      const o = beforeMap[key], n = afterMap[key];
       let diffs = [];
-      if (o.dosage !== n.dosage) diffs.push(`Dosage: "${o.dosage}" ➔ "${n.dosage}"`);
-      if (JSON.stringify(o.times) !== JSON.stringify(n.times)) diffs.push(`Times: [${o.times}] ➔ [${n.times}]`);
-      if ((o.notes||"") !== (n.notes||"")) diffs.push(`Notes: "${o.notes||""}" ➔ "${n.notes||""}"`);
-      if (diffs.length > 0) changed.push({name: n.name, before: o, after: n, diffs});
+      if (o.dosage !== n.dosage) diffs.push('dosage');
+      if (JSON.stringify(o.times) !== JSON.stringify(n.times)) diffs.push('times');
+      if ((o.notes||"") !== (n.notes||"")) diffs.push('notes');
+      if (diffs.length) changed.push({name: n.name, before: o, after: n, fields: diffs});
     }
   }
-  for (const key in newMap) {
-    if (!oldMap[key]) added.push(newMap[key]);
+  for (const key in afterMap) {
+    if (!beforeMap[key]) added.push(afterMap[key]);
   }
   return {added, removed, changed};
 }
 
-window.showMedChangeHistory = function() {
-  hideAllSections();
-  document.getElementById("medChangeHistorySection").style.display = "block";
-  renderMedChangeHistory();
-};
-
-function renderMedChangeHistory() {
-  const history = getMedChangeHistory();
-  const list = document.getElementById('medChangeHistoryList');
-  list.innerHTML = '';
-  if (history.length < 2) {
-    list.innerHTML = '<p>No changes recorded yet.</p>';
-    return;
-  }
-  for (let i = 1; i < history.length; ++i) {
-    const prev = history[i-1], curr = history[i];
-    const summary = document.createElement('div');
-    summary.className = 'med-change-summary';
-    const diff = diffMedLists(prev.meds, curr.meds);
-    let lines = [];
-    diff.added.forEach(m => lines.push(`<span style="color:green;">${m.name} was added</span>`));
-    diff.removed.forEach(m => lines.push(`<span style="color:red;">${m.name} was removed</span>`));
-    diff.changed.forEach(m => lines.push(`<span style="color:orange;">${m.name}: ${m.diffs.join('; ')}</span>`));
-    if (lines.length === 0) continue;
-    summary.innerHTML = `
-      <div class="med-change-summary-header" style="cursor:pointer; font-weight: bold; margin: 8px 0;">
-        ${new Date(curr.date).toLocaleDateString()} &mdash; ${lines.join(', ')}
+function renderChangeDetail(history, idx) {
+  document.querySelectorAll('#changeDatesList li').forEach(li => li.classList.remove('active'));
+  const activeLi = document.getElementById(`change-date-li-${idx}`);
+  if (activeLi) activeLi.classList.add('active');
+  const before = history[idx-1].meds;
+  const after = history[idx].meds;
+  const diff = diffMedLists(before, after);
+  const container = document.getElementById('changeHistoryDetail');
+  let html = `<div class="med-change-entry">
+    <div class="med-change-title">${new Date(history[idx].date).toLocaleDateString()} &mdash;
+      ${diff.added.length ? `<span style="color:green;">${diff.added.map(m=>m.name).join(', ')} was added</span>` : ""}
+      ${diff.removed.length ? `<span style="color:red;">${diff.removed.map(m=>m.name).join(', ')} was removed</span>` : ""}
+      ${diff.changed.length ? diff.changed.map(ch => `<span style="color:orange;">${ch.name}: ${ch.fields.map(f=>f.charAt(0).toUpperCase()+f.slice(1)).join(', ')}</span>`).join('') : ""}
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div>
+        <b>Before</b>
+        <div id="before-table"></div>
+        <button class="export-btn" onclick="exportMedListTable('before-table')">Export Before (PDF)</button>
       </div>
-      <div class="med-change-detail" style="display:none; border:1px solid #ddd; margin: 6px 0; padding: 8px;">
-        <div style="display:flex; gap:24px; flex-wrap:wrap;">
-          <div style="flex:1; min-width:220px;">
-            <b>Before</b>
-            <div class="medlist-compare" id="medlist-before-${i}">${renderMedListTable(prev.meds, diff, "before")}</div>
-            <button onclick="exportMedListTable('medlist-before-${i}')">Export Before (PDF)</button>
-          </div>
-          <div style="flex:1; min-width:220px;">
-            <b>After</b>
-            <div class="medlist-compare" id="medlist-after-${i}">${renderMedListTable(curr.meds, diff, "after")}</div>
-            <button onclick="exportMedListTable('medlist-after-${i}')">Export After (PDF)</button>
-          </div>
-        </div>
+      <div>
+        <b>After</b>
+        <div id="after-table"></div>
+        <button class="export-btn" onclick="exportMedListTable('after-table')">Export After (PDF)</button>
       </div>
-    `;
-    summary.querySelector('.med-change-summary-header').onclick = function() {
-      const detail = summary.querySelector('.med-change-detail');
-      detail.style.display = (detail.style.display === "none" ? "" : "none");
-    };
-    list.appendChild(summary);
-  }
+    </div>
+  </div>`;
+  container.innerHTML = html;
+  renderMedListTable('before-table', before, diff, "before");
+  renderMedListTable('after-table', after, diff, "after");
 }
 
-function renderMedListTable(meds, diff, side) {
-  let html = '<table border="1" cellpadding="4" style="border-collapse:collapse; min-width:200px;"><tr><th>Name</th><th>Dosage</th><th>Times</th><th>Notes</th></tr>';
+function renderMedListTable(containerId, meds, diff, side) {
+  let html = `<table class="medlist-table"><tr><th>Name</th><th>Dosage</th><th>Times</th><th>Notes</th></tr>`;
   meds.forEach(m => {
-    let style = '';
-    if (side === "before" && diff.removed.some(x => x.name === m.name)) style = 'background:#fee;';
-    if (side === "after" && diff.added.some(x => x.name === m.name)) style = 'background:#efe;';
-    if (diff.changed.some(x => x.name === m.name)) style = 'background:#ffe;';
-    html += `<tr style="${style}"><td>${m.name}</td><td>${m.dosage}</td><td>${(m.times||[]).join(', ')}</td><td>${m.notes||''}</td></tr>`;
+    let trClass = '';
+    if (side === "before" && diff.removed.some(x => x.name === m.name)) trClass = 'diff-removed';
+    if (side === "after" && diff.added.some(x => x.name === m.name)) trClass = 'diff-added';
+    let td1 = '', td2 = '', td3 = '';
+    if (diff.changed.some(x => x.name === m.name)) {
+      const ch = diff.changed.find(x => x.name === m.name);
+      if (ch.fields.includes('dosage')) td1 = 'class="diff-highlight"';
+      if (ch.fields.includes('times')) td2 = 'class="diff-highlight"';
+      if (ch.fields.includes('notes')) td3 = 'class="diff-highlight"';
+    }
+    html += `<tr class="${trClass}"><td>${m.name}</td>
+      <td ${td1}>${m.dosage}</td>
+      <td ${td2}>${(m.times||[]).join(', ')}</td>
+      <td ${td3}>${m.notes||''}</td></tr>`;
   });
-  html += '</table>';
-  return html;
+  html += "</table>";
+  document.getElementById(containerId).innerHTML = html;
 }
 
 window.exportMedListTable = function(divId) {
