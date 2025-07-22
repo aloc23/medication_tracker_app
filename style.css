@@ -373,3 +373,67 @@ form#medForm button[type="submit"]:hover {
     padding: 3px 3px;
   }
 }
+
+/* Sidebar-style Change History and Diff Table Enhancements */
+#changeDatesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#changeDatesList li {
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  transition: background 0.15s;
+}
+#changeDatesList li.active,
+#changeDatesList li:hover {
+  background: #dde3f0;
+  font-weight: bold;
+}
+
+.med-change-entry {
+  margin-bottom: 36px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px #0002;
+  padding: 24px;
+}
+.med-change-title {
+  font-size: 1.15em;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+.diff-highlight {
+  background: #ffe;
+}
+.diff-removed {
+  background: #fee;
+}
+.diff-added {
+  background: #efe;
+}
+.medlist-table {
+  border-collapse: collapse;
+  min-width: 330px;
+  margin-bottom: 8px;
+}
+.medlist-table th,
+.medlist-table td {
+  border: 1px solid #ccc;
+  padding: 4px 10px;
+  text-align: left;
+}
+.export-btn {
+  margin: 4px 14px 10px 0;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  cursor: pointer;
+}
+.export-btn:hover {
+  background: #005bbf;
+}
