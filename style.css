@@ -231,6 +231,62 @@ form#medForm button[type="submit"]:hover {
 #stockManagerSection .stock-item button:hover {
   background: #0056b3;
 }
+#calendarNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  background: #f6fbff;
+  padding: 8px 0;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.calendar-day {
+  background: #e3eaf3;
+  min-height: 48px;
+  border-radius: 6px;
+  padding: 2px;
+  font-size: 0.99em;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+.calendar-today {
+  border: 2px solid #007bff;
+}
+.calendar-day.has-dose {
+  background: #d0e8fd;
+}
+.calendar-day .dose-badge {
+  font-size: 0.81em;
+  background: #28a745;
+  color: #fff;
+  border-radius: 5px;
+  padding: 0 5px;
+  margin-top: 3px;
+}
+.calendar-day .dose-badge.missed {
+  background: #c82333;
+}
+.calendar-day .dose-badge.upcoming {
+  background: #ffc107;
+  color: #333;
+}
+#calendarDayDetail {
+  margin-top: 10px;
+  background: #f7faff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: none;
+}
 
 .weekly-table {
   width: 100%;
