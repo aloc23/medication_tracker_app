@@ -18,6 +18,7 @@
     <nav>
       <button onclick="renderMedsGrouped()">Medications</button>
       <button onclick="showAddMedication()">Add Medication</button>
+      <button onclick="showMedChangeHistory()">Change History</button>
       <button onclick="showStockManager()">Stock</button>
       <button onclick="viewWeeklyTimeline()">Weekly</button>
       <button onclick="showCalendar()">Calendar</button>
@@ -58,6 +59,10 @@
         <button type="button" id="addMedCancelBtn" style="display:none;margin-left:8px;" onclick="cancelEditMedication()">Cancel</button>
       </form>
     </section>
+    <section id="medChangeHistorySection" style="display:none;">
+  <h2 class="section-title">Medication Change History</h2>
+  <div id="medChangeHistoryList"></div>
+</section>
     <section id="calendarSection" style="display:none;">
       <h2 class="section-title">Calendar</h2>
       <div id="calendarNav"></div>
