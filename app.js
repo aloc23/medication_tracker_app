@@ -278,6 +278,34 @@ window.deleteMed = function(index) {
     renderMedsGrouped();
   }
 };
+  window.exportMedListPDF = function() {
+  const medListSection = document.getElementById("medListSection");
+  html2canvas(medListSection).then(canvas => {
+    const imgData = canvas.toDataURL("image/jpeg");
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: "a4"
+    });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pageWidth;
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("medication-list.pdf");
+  });
+};
+
+window.exportMedListJPEG = function() {
+  const medListSection = document.getElementById("medListSection");
+  html2canvas(medListSection).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "medication-list.jpg";
+    link.href = canvas.toDataURL("image/jpeg");
+    link.click();
+  });
+};
 
 // ===== Stock Management =====
 
