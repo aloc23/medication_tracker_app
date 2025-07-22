@@ -15,6 +15,7 @@
     <h1>Medication Tracker</h1>
     <nav>
       <button onclick="renderMedsGrouped()">Medications</button>
+      <button onclick="showAddMedication()">Add Medication</button>
       <button onclick="showStockManager()">Stock</button>
       <button onclick="viewWeeklyTimeline()">Weekly</button>
       <button onclick="showCalendar()">Calendar</button>
@@ -28,31 +29,34 @@
     <section id="medListSection">
       <h2 class="section-title">Your Medications</h2>
       <div id="medList"></div>
-      <form id="medForm" autocomplete="off">
-        <input id="medName" type="text" placeholder="Medication Name" required maxlength="40" />
-        <input id="qty" type="number" placeholder="Dose Amount" required min="1" max="1000" />
-        <div id="timeInputs"></div>
-        <button type="button" onclick="addTimeInput()">+ Add Dose Time</button>
-        <textarea id="medNotes" placeholder="Instructions, e.g. take with food" rows="2" maxlength="120"></textarea>
-       <div style="margin: 8px 0;">
-  <label>
-    <input type="checkbox" id="recursDaily" checked>
-    Repeat Daily
-  </label>
-</div>
-<div id="recurrencePeriod" style="display:none; margin-bottom: 12px;">
-  <label>Start date: <input type="date" id="recStart"></label>
-  <label style="margin-left:8px;">End date: <input type="date" id="recEnd"></label>
-</div>
-        <button type="submit">Add/Update Medication</button>
+    </section>
+    <section id="addMedSection" style="display:none;">
+      <h2 class="section-title">Add Medication</h2>
+      <form id="addMedForm" autocomplete="off">
+        <input id="addMedName" type="text" placeholder="Medication Name" required maxlength="40" />
+        <input id="addQty" type="number" placeholder="Dose Amount" required min="1" max="1000" />
+        <div id="addTimeInputs"></div>
+        <button type="button" onclick="addTimeInputToAddForm()">+ Add Dose Time</button>
+        <textarea id="addMedNotes" placeholder="Instructions, e.g. take with food" rows="2" maxlength="120"></textarea>
+        <div style="margin: 8px 0;">
+          <label>
+            <input type="checkbox" id="addRecursDaily" checked>
+            Repeat Daily
+          </label>
+        </div>
+        <div id="addRecurrencePeriod" style="display:none; margin-bottom: 12px;">
+          <label>Start date: <input type="date" id="addRecStart"></label>
+          <label style="margin-left:8px;">End date: <input type="date" id="addRecEnd"></label>
+        </div>
+        <button type="submit">Add Medication</button>
       </form>
-</section>
+    </section>
     <section id="calendarSection" style="display:none;">
-  <h2 class="section-title">Calendar</h2>
-  <div id="calendarNav"></div>
-  <div id="calendar"></div>
-  <div id="calendarDayDetail"></div>
-  </section>
+      <h2 class="section-title">Calendar</h2>
+      <div id="calendarNav"></div>
+      <div id="calendar"></div>
+      <div id="calendarDayDetail"></div>
+    </section>
     <section id="stockManagerSection" style="display:none;">
       <h2 class="section-title">Stock Management</h2>
       <div id="stockManager"></div>
@@ -63,18 +67,18 @@
     </section>
     <section id="chartSection" style="display:none;">
       <h2 class="section-title">Adherence Chart</h2>
-      <select id="chartRange" onchange="renderAdherenceChart()">
-        <option value="7">Last 7 Days</option>
-        <option value="30">Last 30 Days</option>
-        <option value="all">All</option>
+      <canvas id="adherenceChart"></canvas>
+      <select id="chartRange">
+        <option value="7">Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="all">All time</option>
       </select>
-      <canvas id="adherenceChart" style="width:100%;max-width:600px;height:300px;margin-top:10px;"></canvas>
     </section>
     <section id="historySection" style="display:none;">
-      <h2 class="section-title">Dose History</h2>
+      <h2 class="section-title">Medication History</h2>
       <div id="history"></div>
     </section>
-    <div id="toast" style="display:none;position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 26px;border-radius:8px;font-size:1.1em;z-index:9999;box-shadow:0 2px 20px rgba(0,0,0,0.07);"></div>
+    <div id="toast" style="display:none;" class="toast"></div>
   </main>
   <script src="app.js"></script>
 </body>
