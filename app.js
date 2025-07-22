@@ -22,6 +22,7 @@ function hideAllSections() {
   document.getElementById('chartSection').style.display = 'none';
   document.getElementById('historySection').style.display = 'none';
   document.getElementById('addMedSection').style.display = 'none';
+  document.getElementById('medChangeHistorySection').style.display = 'none';
 }
 function showToast(msg, duration = 2000) {
   let toast = document.getElementById('toast');
@@ -29,6 +30,300 @@ function showToast(msg, duration = 2000) {
   toast.style.display = 'block';
   setTimeout(() => { toast.style.display = 'none'; }, duration);
 }
+
+// ===== Medication Change History Functions =====
+
+function recordMedicationChange(action, oldMed, newMed, medIndex = null) {
+  const user = getCurrentUser();
+  const changeHistory = JSON.parse(localStorage.getItem(user + '_changeHistory')) || [];
+  const timestamp = new Date().toISOString();
+  
+  const change = {
+    id: Date.now() + Math.random(), // Unique ID
+    timestamp,
+    action, // 'add', 'edit', 'delete', 'stock_update'
+    oldMedication: oldMed ? JSON.parse(JSON.stringify(oldMed)) : null,
+    newMedication: newMed ? JSON.parse(JSON.stringify(newMed)) : null,
+    medIndex
+  };
+  
+  changeHistory.push(change);
+  localStorage.setItem(user + '_changeHistory', JSON.stringify(changeHistory));
+}
+
+function getMedicationChanges() {
+  const user = getCurrentUser();
+  return JSON.parse(localStorage.getItem(user + '_changeHistory')) || [];
+}
+
+window.clearMedicationHistory = function() {
+  const user = getCurrentUser();
+  if (confirm('Are you sure you want to clear all medication change history? This cannot be undone.')) {
+    localStorage.removeItem(user + '_changeHistory');
+    showMedChangeHistory();
+    showToast('Change history cleared.');
+  }
+}
+
+window.exportChangeHistoryCSV = function() {
+  const user = getCurrentUser();
+  const changes = getMedicationChanges();
+  let csv = "Timestamp,Action,Medication Name,Old Data,New Data\n";
+  
+  changes.forEach(change => {
+    const timestamp = new Date(change.timestamp).toLocaleString();
+    const action = change.action;
+    const medName = change.newMedication?.name || change.oldMedication?.name || 'Unknown';
+    const oldData = change.oldMedication ? JSON.stringify(change.oldMedication).replace(/"/g, '""') : '';
+    const newData = change.newMedication ? JSON.stringify(change.newMedication).replace(/"/g, '""') : '';
+    
+    csv += `"${timestamp}","${action}","${medName}","${oldData}","${newData}"\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${user}_medication_change_history.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+window.exportChangeHistoryJSON = function() {
+  const user = getCurrentUser();
+  const changes = getMedicationChanges();
+  const json = JSON.stringify(changes, null, 2);
+  
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${user}_medication_change_history.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+window.showChangeDiff = function(changeId) {
+  const changes = getMedicationChanges();
+  const change = changes.find(c => c.id === changeId);
+  if (!change) return;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.5); z-index: 1000; display: flex; 
+    align-items: center; justify-content: center;
+  `;
+  
+  const content = document.createElement('div');
+  content.style.cssText = `
+    background: white; padding: 20px; border-radius: 8px; 
+    max-width: 90%; max-height: 90%; overflow: auto;
+    position: relative;
+  `;
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '×';
+  closeBtn.style.cssText = `
+    position: absolute; top: 10px; right: 15px; 
+    background: none; border: none; font-size: 24px; cursor: pointer;
+  `;
+  closeBtn.onclick = () => document.body.removeChild(modal);
+  
+  let diffHtml = `<h3>Medication Change Details</h3>
+    <p><strong>Date:</strong> ${new Date(change.timestamp).toLocaleString()}</p>
+    <p><strong>Action:</strong> ${change.action}</p>`;
+  
+  if (change.action === 'edit' && change.oldMedication && change.newMedication) {
+    diffHtml += `<h4>Side-by-Side Comparison</h4>
+      <div style="display: flex; gap: 20px;">
+        <div style="flex: 1; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+          <h5 style="color: #d32f2f;">Before</h5>
+          ${formatMedicationDetails(change.oldMedication)}
+        </div>
+        <div style="flex: 1; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+          <h5 style="color: #2e7d32;">After</h5>
+          ${formatMedicationDetails(change.newMedication)}
+        </div>
+      </div>`;
+    
+    // Show specific changes
+    diffHtml += '<h4>Changes Made</h4><ul>';
+    const changes = findMedicationDifferences(change.oldMedication, change.newMedication);
+    changes.forEach(diff => {
+      diffHtml += `<li><strong>${diff.field}:</strong> ${diff.old} → ${diff.new}</li>`;
+    });
+    diffHtml += '</ul>';
+  } else if (change.oldMedication) {
+    diffHtml += `<h4>Medication Data</h4>${formatMedicationDetails(change.oldMedication)}`;
+  } else if (change.newMedication) {
+    diffHtml += `<h4>Medication Data</h4>${formatMedicationDetails(change.newMedication)}`;
+  }
+  
+  content.innerHTML = diffHtml;
+  content.appendChild(closeBtn);
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+}
+
+function formatMedicationDetails(med) {
+  return `
+    <p><strong>Name:</strong> ${med.name}</p>
+    <p><strong>Dosage:</strong> ${med.dosage}</p>
+    <p><strong>Times:</strong> ${(med.times || []).join(', ')}</p>
+    <p><strong>Reminders:</strong> ${(med.reminders || []).map(r => r ? 'Yes' : 'No').join(', ')}</p>
+    <p><strong>Notes:</strong> ${med.notes || 'None'}</p>
+    <p><strong>Stock:</strong> ${med.stock || 0}</p>
+    <p><strong>Recurrence:</strong> ${med.recurrence?.type === 'period' ? 
+      `Period (${med.recurrence.start} to ${med.recurrence.end})` : 'Daily'}</p>
+  `;
+}
+
+function findMedicationDifferences(oldMed, newMed) {
+  const differences = [];
+  const fields = ['name', 'dosage', 'notes', 'stock'];
+  
+  fields.forEach(field => {
+    if (oldMed[field] !== newMed[field]) {
+      differences.push({
+        field: field.charAt(0).toUpperCase() + field.slice(1),
+        old: oldMed[field] || 'None',
+        new: newMed[field] || 'None'
+      });
+    }
+  });
+  
+  // Compare arrays
+  if (JSON.stringify(oldMed.times) !== JSON.stringify(newMed.times)) {
+    differences.push({
+      field: 'Times',
+      old: (oldMed.times || []).join(', '),
+      new: (newMed.times || []).join(', ')
+    });
+  }
+  
+  if (JSON.stringify(oldMed.reminders) !== JSON.stringify(newMed.reminders)) {
+    differences.push({
+      field: 'Reminders',
+      old: (oldMed.reminders || []).map(r => r ? 'Yes' : 'No').join(', '),
+      new: (newMed.reminders || []).map(r => r ? 'Yes' : 'No').join(', ')
+    });
+  }
+  
+  if (JSON.stringify(oldMed.recurrence) !== JSON.stringify(newMed.recurrence)) {
+    const oldRec = oldMed.recurrence?.type === 'period' ? 
+      `Period (${oldMed.recurrence.start} to ${oldMed.recurrence.end})` : 'Daily';
+    const newRec = newMed.recurrence?.type === 'period' ? 
+      `Period (${newMed.recurrence.start} to ${newMed.recurrence.end})` : 'Daily';
+    differences.push({
+      field: 'Recurrence',
+      old: oldRec,
+      new: newRec
+    });
+  }
+  
+  return differences;
+}
+
+window.showMedChangeHistory = function() {
+  hideAllSections();
+  document.getElementById('medChangeHistorySection').style.display = 'block';
+  
+  const changes = getMedicationChanges().reverse(); // Show newest first
+  const historyList = document.getElementById('medChangeHistoryList');
+  
+  if (changes.length === 0) {
+    historyList.innerHTML = `
+      <div style="text-align: center; padding: 40px; color: #666;">
+        <p>No medication changes recorded yet.</p>
+        <p>Changes will appear here when you add, edit, or delete medications.</p>
+      </div>`;
+    return;
+  }
+  
+  let html = `
+    <div style="margin-bottom: 15px;">
+      <button onclick="exportChangeHistoryCSV()" style="margin-right: 10px;">Export as CSV</button>
+      <button onclick="exportChangeHistoryJSON()" style="margin-right: 10px;">Export as JSON</button>
+      <button onclick="clearMedicationHistory()" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">Clear History</button>
+    </div>
+    <div style="max-height: 400px; overflow-y: auto;">
+  `;
+  
+  changes.forEach(change => {
+    const timestamp = new Date(change.timestamp).toLocaleString();
+    const medName = change.newMedication?.name || change.oldMedication?.name || 'Unknown';
+    
+    let actionText = '';
+    let actionColor = '';
+    switch (change.action) {
+      case 'add':
+        actionText = 'Added';
+        actionColor = '#28a745';
+        break;
+      case 'edit':
+        actionText = 'Modified';
+        actionColor = '#007bff';
+        break;
+      case 'delete':
+        actionText = 'Deleted';
+        actionColor = '#dc3545';
+        break;
+      case 'stock_update':
+        actionText = 'Stock Updated';
+        actionColor = '#6f42c1';
+        break;
+    }
+    
+    html += `
+      <div style="border: 1px solid #e3eaf3; border-radius: 8px; padding: 12px; margin-bottom: 10px; background: #f7faff;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+          <div>
+            <span style="font-weight: bold; color: ${actionColor};">${actionText}</span>
+            <span style="font-weight: bold; margin-left: 8px;">${medName}</span>
+          </div>
+          <div style="font-size: 0.9em; color: #666;">${timestamp}</div>
+        </div>
+    `;
+    
+    if (change.action === 'add') {
+      html += `<div style="color: #666; font-size: 0.9em;">New medication added to your list</div>`;
+    } else if (change.action === 'delete') {
+      html += `<div style="color: #666; font-size: 0.9em;">Medication removed from your list</div>`;
+    } else if (change.action === 'edit') {
+      const differences = findMedicationDifferences(change.oldMedication, change.newMedication);
+      if (differences.length > 0) {
+        html += `<div style="color: #666; font-size: 0.9em; margin-bottom: 5px;">Changes made:</div>`;
+        html += '<ul style="margin: 0; padding-left: 20px; font-size: 0.9em;">';
+        differences.slice(0, 3).forEach(diff => { // Show first 3 changes
+          html += `<li><strong>${diff.field}:</strong> ${diff.old} → ${diff.new}</li>`;
+        });
+        if (differences.length > 3) {
+          html += `<li>... and ${differences.length - 3} more changes</li>`;
+        }
+        html += '</ul>';
+      }
+    } else if (change.action === 'stock_update') {
+      const oldStock = change.oldMedication?.stock || 0;
+      const newStock = change.newMedication?.stock || 0;
+      html += `<div style="color: #666; font-size: 0.9em;">Stock changed from ${oldStock} to ${newStock}</div>`;
+    }
+    
+    html += `
+        <div style="margin-top: 8px;">
+          <button onclick="showChangeDiff(${change.id})" style="background: #6c757d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">View Details</button>
+        </div>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  historyList.innerHTML = html;
+};
 
 // ===== Add/Edit Medication Section Logic =====
 
@@ -123,16 +418,22 @@ document.getElementById('addMedForm').addEventListener('submit', function(e) {
     recurrence = { type: "period", start, end };
   }
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  
   if (editMedicationIndex === null) {
-    meds.push({
+    const newMed = {
       name, dosage: `${qty}`, times, reminders, notes, stock: 0, recurrence
-    });
+    };
+    meds.push(newMed);
+    recordMedicationChange('add', null, newMed);
     showToast("Medication added!");
   } else {
-    meds[editMedicationIndex] = {
+    const oldMed = JSON.parse(JSON.stringify(meds[editMedicationIndex])); // Deep copy for history
+    const updatedMed = {
       ...meds[editMedicationIndex],
       name, dosage: `${qty}`, times, reminders, notes, recurrence
     };
+    meds[editMedicationIndex] = updatedMed;
+    recordMedicationChange('edit', oldMed, updatedMed, editMedicationIndex);
     showToast("Medication updated!");
     editMedicationIndex = null;
   }
@@ -273,6 +574,8 @@ window.deleteMed = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   if (confirm("Delete this medication schedule?")) {
+    const deletedMed = JSON.parse(JSON.stringify(meds[index])); // Deep copy for history
+    recordMedicationChange('delete', deletedMed, null, index);
     meds.splice(index, 1);
     saveMeds(user, meds);
     renderMedsGrouped();
@@ -334,7 +637,10 @@ window.updateStock = function(index) {
   const input = document.getElementById(`stock-input-${index}`);
   const value = parseInt(input.value);
   if (!isNaN(value)) {
+    const oldMed = JSON.parse(JSON.stringify(meds[index])); // Deep copy for history
     meds[index].stock = value;
+    const newMed = JSON.parse(JSON.stringify(meds[index])); // Deep copy for history
+    recordMedicationChange('stock_update', oldMed, newMed, index);
     saveMeds(user, meds);
     showStockManager();
     showToast("Stock updated.");
