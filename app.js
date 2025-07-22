@@ -675,6 +675,73 @@ function scheduleDoseReminders() {
   });
 }
 
+// ... your previous code remains ABOVE HERE ...
+
+// =========================
+// NEW: Add Medication Section Logic
+// =========================
+
+window.showAddMedication = function() {
+  hideAllSections();
+  document.getElementById('addMedSection').style.display = 'block';
+};
+
+// Utility for time input rows in the add form
+window.addTimeInputToAddForm = function(value = "", reminder = false) {
+  const div = document.createElement("div");
+  div.className = "time-input-row";
+  div.innerHTML = `
+    <input type="time" class="dose-time-input" value="${value}">
+    <label><input type="checkbox" class="reminder-checkbox" ${reminder ? "checked" : ""}> Reminder</label>
+    <button type="button" onclick="this.parentNode.remove()">×</button>
+  `;
+  document.getElementById('addTimeInputs').appendChild(div);
+};
+if (!document.querySelector('#addTimeInputs .dose-time-input')) addTimeInputToAddForm();
+
+// Recurrence event handler for add form
+function attachAddRecurrenceEventHandlers() {
+  const recursDaily = document.getElementById('addRecursDaily');
+  const periodDiv = document.getElementById('addRecurrencePeriod');
+  if (recursDaily && periodDiv) {
+    recursDaily.addEventListener('change', function() {
+      periodDiv.style.display = this.checked ? 'none' : '';
+    });
+  }
+}
+attachAddRecurrenceEventHandlers();
+
+// Add Medication Form Submission
+document.getElementById('addMedForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const user = getCurrentUser();
+  const name = document.getElementById('addMedName').value.trim();
+  const qty = document.getElementById('addQty').value;
+  const notes = document.getElementById('addMedNotes').value;
+  const times = Array.from(document.querySelectorAll('#addTimeInputs .dose-time-input')).map(i => i.value);
+  const reminders = Array.from(document.querySelectorAll('#addTimeInputs .reminder-checkbox')).map(i => i.checked);
+  let recurrence = null;
+  if (!document.getElementById('addRecursDaily').checked) {
+    const start = document.getElementById('addRecStart').value;
+    const end = document.getElementById('addRecEnd').value;
+    recurrence = { type: "period", start, end };
+  }
+  let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  meds.push({
+    name, dosage: `${qty}`, times, reminders, notes, stock: 0, recurrence
+  });
+  saveMeds(user, meds);
+  showToast("Medication added!");
+  document.getElementById('addMedForm').reset();
+  document.getElementById('addTimeInputs').innerHTML = '';
+  addTimeInputToAddForm();
+  document.getElementById('addRecurrencePeriod').style.display = 'none';
+  document.getElementById('addRecursDaily').checked = true;
+  attachAddRecurrenceEventHandlers();
+  renderMedsGrouped(); // Optionally auto-redirect to Medications list
+});
+
+// ... your existing code remains BELOW HERE ...
 function checkMissedDoses() {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
