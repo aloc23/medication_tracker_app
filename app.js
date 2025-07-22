@@ -476,95 +476,7 @@ window.showHistory = function() {
   historyDiv.innerHTML = html;
   document.getElementById('historySection').style.display = 'block';
 };
-
-window.exportLogs = function() {
-  const user = getCurrentUser();
-  const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
-  let csv = "Date,Medication,Time,Dose\n";
-  Object.entries(logs).forEach(([date, entries]) => {
-    entries.forEach(e => {
-      csv += `${date},${e.name},${e.time},${e.dosage}\n`;
-    });
-  });
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${user}_medication_log.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-function requestNotificationPermission() {
-  if ('Notification' in window && Notification.permission !== 'granted') {
-    Notification.requestPermission();
-  }
-}
-function scheduleDoseReminders() {
-  const user = getCurrentUser();
-  let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
-  meds.forEach(med => {
-    med.times.forEach((time, idx) => {
-      if (med.reminders && med.reminders[idx]) {
-        const now = new Date();
-        const [hour, minute] = time.split(':').map(Number);
-        const target = new Date();
-        target.setHours(hour, minute, 0, 0);
-        if (target > now) {
-          const timeout = target.getTime() - now.getTime();
-          setTimeout(() => {
-            if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification(`Time to take ${med.name} (${med.dosage})`);
-            }
-          }, timeout);
-        }
-      }
-    });
-  });
-}
-
-function checkMissedDoses() {
-  const user = getCurrentUser();
-  let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
-  const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
-  const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
-  let missed = [];
-
-  meds.forEach(med => {
-    med.times.forEach(time => {
-      const [hour, minute] = time.split(':').map(Number);
-      const doseTime = new Date();
-      doseTime.setHours(hour, minute, 0, 0);
-      if (doseTime < now) {
-        const isTaken = logs[todayStr]?.some(e => e.name === med.name && e.time === time);
-        if (!isTaken) {
-          missed.push({ med: med.name, time });
-          if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(`Missed dose: ${med.name} at ${time}`);
-          }
-        }
-      }
-    });
-  });
-
-  if (missed.length > 0) {
-    showToast(`Missed ${missed.length} dose(s) today!`, 3500);
-  }
-}
-
-function appStartup() {
-  renderMedsGrouped();
-  requestNotificationPermission();
-  scheduleDoseReminders();
-  checkMissedDoses();
-  setInterval(checkMissedDoses, 60 * 1000);
-};
-appStartup();
-
-});
-window.showCalendar = function(monthDelta = 0) {
+  window.showCalendar = function(monthDelta = 0) {
   hideAllSections();
   document.getElementById('calendarSection').style.display = 'block';
 
@@ -714,3 +626,91 @@ window.markCalendarTaken = function(iso, medIdx, t) {
     showToast('Dose already marked as taken.');
   }
 };
+
+window.exportLogs = function() {
+  const user = getCurrentUser();
+  const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
+  let csv = "Date,Medication,Time,Dose\n";
+  Object.entries(logs).forEach(([date, entries]) => {
+    entries.forEach(e => {
+      csv += `${date},${e.name},${e.time},${e.dosage}\n`;
+    });
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${user}_medication_log.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission !== 'granted') {
+    Notification.requestPermission();
+  }
+}
+function scheduleDoseReminders() {
+  const user = getCurrentUser();
+  let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  meds.forEach(med => {
+    med.times.forEach((time, idx) => {
+      if (med.reminders && med.reminders[idx]) {
+        const now = new Date();
+        const [hour, minute] = time.split(':').map(Number);
+        const target = new Date();
+        target.setHours(hour, minute, 0, 0);
+        if (target > now) {
+          const timeout = target.getTime() - now.getTime();
+          setTimeout(() => {
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(`Time to take ${med.name} (${med.dosage})`);
+            }
+          }, timeout);
+        }
+      }
+    });
+  });
+}
+
+function checkMissedDoses() {
+  const user = getCurrentUser();
+  let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
+  let missed = [];
+
+  meds.forEach(med => {
+    med.times.forEach(time => {
+      const [hour, minute] = time.split(':').map(Number);
+      const doseTime = new Date();
+      doseTime.setHours(hour, minute, 0, 0);
+      if (doseTime < now) {
+        const isTaken = logs[todayStr]?.some(e => e.name === med.name && e.time === time);
+        if (!isTaken) {
+          missed.push({ med: med.name, time });
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(`Missed dose: ${med.name} at ${time}`);
+          }
+        }
+      }
+    });
+  });
+
+  if (missed.length > 0) {
+    showToast(`Missed ${missed.length} dose(s) today!`, 3500);
+  }
+}
+
+function appStartup() {
+  renderMedsGrouped();
+  requestNotificationPermission();
+  scheduleDoseReminders();
+  checkMissedDoses();
+  setInterval(checkMissedDoses, 60 * 1000);
+};
+appStartup();
+
+});
