@@ -10,7 +10,7 @@
   <link rel="icon" href="icon-192.png" sizes="192x192" />
   <meta name="theme-color" content="#007bff" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
   <header class="sticky-header">
@@ -29,14 +29,14 @@
     </nav>
   </header>
   <main>
-<section id="medListSection">
-  <h2 class="section-title">Your Medications</h2>
-  <div id="medList"></div>
-  <div id="medListExportBtns" style="margin:12px 0;">
-    <button onclick="exportMedListPDF()">Export Med List as PDF</button>
-    <button onclick="exportMedListJPEG()">Export Med List as JPEG</button>
-  </div>
-</section>
+    <section id="medListSection">
+      <h2 class="section-title">Your Medications</h2>
+      <div id="medList"></div>
+      <div id="medListExportBtns" style="margin:12px 0;">
+        <button onclick="exportMedListPDF()">Export Med List as PDF</button>
+        <button onclick="exportMedListJPEG()">Export Med List as JPEG</button>
+      </div>
+    </section>
     <section id="addMedSection" style="display:none;">
       <h2 class="section-title" id="addMedSectionTitle">Add Medication</h2>
       <form id="addMedForm" autocomplete="off">
@@ -60,9 +60,8 @@
       </form>
     </section>
     <section id="medChangeHistorySection" style="display:none;">
-  <h2 class="section-title">Medication Change History</h2>
-  <div id="medChangeHistoryList"></div>
-</section>
+      <!-- JS renders full sidebar and details here -->
+    </section>
     <section id="calendarSection" style="display:none;">
       <h2 class="section-title">Calendar</h2>
       <div id="calendarNav"></div>
