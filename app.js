@@ -446,20 +446,136 @@ window.renderAdherenceChart = function() {
 
 // ===== Calendar =====
 
-window.showCalendar = function() {
+ window.showCalendar = function(monthDelta = 0) {
   hideAllSections();
   document.getElementById('calendarSection').style.display = 'block';
-  // ...Calendar rendering logic...
-  // For brevity, keep your existing calendar rendering code here
-};
 
-// ===== Calendar Day Detail =====
+  let today = new Date();
+  if (!window._calendarMonth) window._calendarMonth = today.getMonth();
+  if (!window._calendarYear) window._calendarYear = today.getFullYear();
+
+  window._calendarMonth += monthDelta;
+  if (window._calendarMonth < 0) {
+    window._calendarMonth = 11;
+    window._calendarYear--;
+  }
+  if (window._calendarMonth > 11) {
+    window._calendarMonth = 0;
+    window._calendarYear++;
+  }
+
+  const month = window._calendarMonth;
+  const year = window._calendarYear;
+
+  // Nav bar
+  const navDiv = document.getElementById('calendarNav');
+  navDiv.innerHTML = `
+    <button onclick="showCalendar(-1)">&#8592; Prev</button>
+    <b>${today.toLocaleString('default', { month: 'long' })} ${year}</b>
+    <button onclick="showCalendar(1)">Next &#8594;</button>
+  `;
+
+  // Days grid
+  const calendarDiv = document.getElementById('calendar');
+  calendarDiv.innerHTML = '';
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const user = getCurrentUser();
+  const meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
+
+  // Weekday header
+  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  weekdays.forEach(d => {
+    const wd = document.createElement('div');
+    wd.textContent = d;
+    wd.style.fontWeight = 'bold';
+    calendarDiv.appendChild(wd);
+  });
+
+  // Blank days before 1st
+  for (let i = 0; i < firstDay; i++) {
+    calendarDiv.appendChild(document.createElement('div'));
+  }
+
+  // Days of month
+  for (let date = 1; date <= daysInMonth; date++) {
+    const iso = new Date(year, month, date).toISOString().split('T')[0];
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'calendar-day';
+    if (iso === (new Date()).toISOString().split('T')[0]) dayDiv.classList.add('calendar-today');
+
+    // Check if doses scheduled
+    let totalDoses = 0, taken = 0, missed = 0, upcoming = 0;
+    meds.forEach(med => {
+      // Check recurrence
+      let show = false;
+      if (med.recurrence?.type === "period") {
+        if (iso >= med.recurrence.start && iso <= med.recurrence.end) show = true;
+      } else {
+        show = true;
+      }
+      if (show) {
+        totalDoses += med.times.length;
+        med.times.forEach((t, idx) => {
+          const isTaken = logs[iso]?.some(e => e.name === med.name && e.time === t);
+          const now = new Date();
+          const [hour, minute] = t.split(':').map(Number);
+          const doseDateTime = new Date(iso);
+          doseDateTime.setHours(hour, minute, 0, 0);
+          if (isTaken) taken++;
+          else if (doseDateTime < now) missed++;
+          else upcoming++;
+        });
+      }
+    });
+    if (totalDoses > 0) {
+      dayDiv.classList.add('has-dose');
+      if (taken) dayDiv.innerHTML += `<span class="dose-badge">${taken} taken</span>`;
+      if (missed) dayDiv.innerHTML += `<span class="dose-badge missed">${missed} missed</span>`;
+      if (upcoming) dayDiv.innerHTML += `<span class="dose-badge upcoming">${upcoming} upcoming</span>`;
+    }
+    dayDiv.innerHTML = `<div>${date}</div>` + dayDiv.innerHTML;
+
+    // Show detail on click
+    dayDiv.onclick = () => showCalendarDayDetail(iso);
+
+    calendarDiv.appendChild(dayDiv);
+  }
+  document.getElementById('calendarDayDetail').style.display = 'none';
+};
 
 window.showCalendarDayDetail = function(iso) {
-  // ...Your existing detail view logic...
+  const user = getCurrentUser();
+  const meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
+  let html = `<b>${iso}</b><br>`;
+  let any = false;
+  meds.forEach((med, mi) => {
+    let show = false;
+    if (med.recurrence?.type === "period") {
+      if (iso >= med.recurrence.start && iso <= med.recurrence.end) show = true;
+    } else {
+      show = true;
+    }
+    if (show) {
+      med.times.forEach((t, ti) => {
+        any = true;
+        const isTaken = logs[iso]?.some(e => e.name === med.name && e.time === t);
+        html += `
+          <div style="margin:5px 0;">
+            <b>${med.name}</b> at <b>${t}</b> ${isTaken ? "<span style='color:green'>✔️</span>" : ""}
+            ${!isTaken ? `<button onclick="markCalendarTaken('${iso}',${mi},'${t}')">Mark Taken</button>` : ""}
+          </div>
+        `;
+      });
+    }
+  });
+  if (!any) html += "No doses scheduled.";
+  const detailDiv = document.getElementById('calendarDayDetail');
+  detailDiv.innerHTML = html;
+  detailDiv.style.display = 'block';
 };
-
-// ===== Mark Calendar Dose Taken =====
 
 window.markCalendarTaken = function(iso, medIdx, t) {
   const user = getCurrentUser();
