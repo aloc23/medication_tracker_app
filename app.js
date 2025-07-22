@@ -15,6 +15,7 @@ function stockColor(stock) {
 function hideAllSections() {
   document.getElementById('medListSection').style.display = 'none';
   document.getElementById('stockManagerSection').style.display = 'none';
+  document.getElementById('calendarSection').style.display = 'none';
   document.getElementById('weeklyViewSection').style.display = 'none';
   document.getElementById('chartSection').style.display = 'none';
   document.getElementById('historySection').style.display = 'none';
