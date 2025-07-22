@@ -22,6 +22,7 @@ function hideAllSections() {
   document.getElementById('chartSection').style.display = 'none';
   document.getElementById('historySection').style.display = 'none';
   document.getElementById('addMedSection').style.display = 'none';
+  document.getElementById('medChangeHistorySection').style.display = 'none';
 }
 function showToast(msg, duration = 2000) {
   let toast = document.getElementById('toast');
@@ -123,12 +124,15 @@ document.getElementById('addMedForm').addEventListener('submit', function(e) {
     recurrence = { type: "period", start, end };
   }
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  let reason = "";
   if (editMedicationIndex === null) {
     meds.push({
       name, dosage: `${qty}`, times, reminders, notes, stock: 0, recurrence
     });
     showToast("Medication added!");
+    reason = `Added ${name}`;
   } else {
+    reason = `Edited ${meds[editMedicationIndex].name}`;
     meds[editMedicationIndex] = {
       ...meds[editMedicationIndex],
       name, dosage: `${qty}`, times, reminders, notes, recurrence
@@ -137,6 +141,7 @@ document.getElementById('addMedForm').addEventListener('submit', function(e) {
     editMedicationIndex = null;
   }
   saveMeds(user, meds);
+  saveMedChangeSnapshot(reason);
   document.getElementById('addMedForm').reset();
   document.getElementById('addTimeInputs').innerHTML = '';
   addTimeInputToAddForm();
@@ -242,6 +247,7 @@ window.markAllTaken = function(index) {
     med.stock = Math.max(0, (med.stock || 0) - dosesMarked * parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(log));
+    saveMedChangeSnapshot(`Marked all doses taken for ${med.name}`);
     showToast(`Marked ${dosesMarked} dose(s) as taken.`);
     renderMedsGrouped();
   } else {
@@ -265,6 +271,7 @@ window.markTaken = function(index, time) {
   med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
   saveMeds(user, meds);
   localStorage.setItem(user + '_medLogs', JSON.stringify(log));
+  saveMedChangeSnapshot(`Marked dose taken for ${med.name} at ${time}`);
   showToast('Dose marked as taken.');
   renderMedsGrouped();
 };
@@ -273,12 +280,148 @@ window.deleteMed = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   if (confirm("Delete this medication schedule?")) {
+    let medName = meds[index].name;
     meds.splice(index, 1);
     saveMeds(user, meds);
+    saveMedChangeSnapshot(`Deleted ${medName}`);
     renderMedsGrouped();
   }
 };
-  window.exportMedListPDF = function() {
+
+// ===== Medication Change History =====
+
+function getMedChangeHistoryKey() {
+  return getCurrentUser() + '_medChangeHistory';
+}
+
+function saveMedChangeSnapshot(reason = "") {
+  const user = getCurrentUser();
+  const meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  const historyKey = getMedChangeHistoryKey();
+  let history = JSON.parse(localStorage.getItem(historyKey)) || [];
+  const now = new Date();
+  history.push({
+    date: now.toISOString(),
+    meds: JSON.parse(JSON.stringify(meds)),
+    reason: reason
+  });
+  localStorage.setItem(historyKey, JSON.stringify(history));
+}
+
+function getMedChangeHistory() {
+  return JSON.parse(localStorage.getItem(getMedChangeHistoryKey())) || [];
+}
+
+function diffMedLists(oldList, newList) {
+  function medKey(med) { return med.name.toLowerCase(); }
+  const oldMap = Object.fromEntries(oldList.map(m => [medKey(m), m]));
+  const newMap = Object.fromEntries(newList.map(m => [medKey(m), m]));
+  const added = [];
+  const removed = [];
+  const changed = [];
+  for (const key in oldMap) {
+    if (!newMap[key]) removed.push(oldMap[key]);
+    else {
+      const o = oldMap[key], n = newMap[key];
+      let diffs = [];
+      if (o.dosage !== n.dosage) diffs.push(`Dosage: "${o.dosage}" ➔ "${n.dosage}"`);
+      if (JSON.stringify(o.times) !== JSON.stringify(n.times)) diffs.push(`Times: [${o.times}] ➔ [${n.times}]`);
+      if ((o.notes||"") !== (n.notes||"")) diffs.push(`Notes: "${o.notes||""}" ➔ "${n.notes||""}"`);
+      if (diffs.length > 0) changed.push({name: n.name, before: o, after: n, diffs});
+    }
+  }
+  for (const key in newMap) {
+    if (!oldMap[key]) added.push(newMap[key]);
+  }
+  return {added, removed, changed};
+}
+
+window.showMedChangeHistory = function() {
+  hideAllSections();
+  document.getElementById("medChangeHistorySection").style.display = "block";
+  renderMedChangeHistory();
+};
+
+function renderMedChangeHistory() {
+  const history = getMedChangeHistory();
+  const list = document.getElementById('medChangeHistoryList');
+  list.innerHTML = '';
+  if (history.length < 2) {
+    list.innerHTML = '<p>No changes recorded yet.</p>';
+    return;
+  }
+  for (let i = 1; i < history.length; ++i) {
+    const prev = history[i-1], curr = history[i];
+    const summary = document.createElement('div');
+    summary.className = 'med-change-summary';
+    const diff = diffMedLists(prev.meds, curr.meds);
+    let lines = [];
+    diff.added.forEach(m => lines.push(`<span style="color:green;">${m.name} was added</span>`));
+    diff.removed.forEach(m => lines.push(`<span style="color:red;">${m.name} was removed</span>`));
+    diff.changed.forEach(m => lines.push(`<span style="color:orange;">${m.name}: ${m.diffs.join('; ')}</span>`));
+    if (lines.length === 0) continue;
+    summary.innerHTML = `
+      <div class="med-change-summary-header" style="cursor:pointer; font-weight: bold; margin: 8px 0;">
+        ${new Date(curr.date).toLocaleDateString()} &mdash; ${lines.join(', ')}
+      </div>
+      <div class="med-change-detail" style="display:none; border:1px solid #ddd; margin: 6px 0; padding: 8px;">
+        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:220px;">
+            <b>Before</b>
+            <div class="medlist-compare" id="medlist-before-${i}">${renderMedListTable(prev.meds, diff, "before")}</div>
+            <button onclick="exportMedListTable('medlist-before-${i}')">Export Before (PDF)</button>
+          </div>
+          <div style="flex:1; min-width:220px;">
+            <b>After</b>
+            <div class="medlist-compare" id="medlist-after-${i}">${renderMedListTable(curr.meds, diff, "after")}</div>
+            <button onclick="exportMedListTable('medlist-after-${i}')">Export After (PDF)</button>
+          </div>
+        </div>
+      </div>
+    `;
+    summary.querySelector('.med-change-summary-header').onclick = function() {
+      const detail = summary.querySelector('.med-change-detail');
+      detail.style.display = (detail.style.display === "none" ? "" : "none");
+    };
+    list.appendChild(summary);
+  }
+}
+
+function renderMedListTable(meds, diff, side) {
+  let html = '<table border="1" cellpadding="4" style="border-collapse:collapse; min-width:200px;"><tr><th>Name</th><th>Dosage</th><th>Times</th><th>Notes</th></tr>';
+  meds.forEach(m => {
+    let style = '';
+    if (side === "before" && diff.removed.some(x => x.name === m.name)) style = 'background:#fee;';
+    if (side === "after" && diff.added.some(x => x.name === m.name)) style = 'background:#efe;';
+    if (diff.changed.some(x => x.name === m.name)) style = 'background:#ffe;';
+    html += `<tr style="${style}"><td>${m.name}</td><td>${m.dosage}</td><td>${(m.times||[]).join(', ')}</td><td>${m.notes||''}</td></tr>`;
+  });
+  html += '</table>';
+  return html;
+}
+
+window.exportMedListTable = function(divId) {
+  const node = document.getElementById(divId);
+  html2canvas(node).then(canvas => {
+    const imgData = canvas.toDataURL("image/jpeg");
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: "a4"
+    });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pageWidth;
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("medication-list.pdf");
+  });
+};
+
+// ===== Export Med List PDF/JPEG =====
+
+window.exportMedListPDF = function() {
   const medListSection = document.getElementById("medListSection");
   html2canvas(medListSection).then(canvas => {
     const imgData = canvas.toDataURL("image/jpeg");
@@ -339,6 +482,7 @@ window.updateStock = function(index) {
     showStockManager();
     showToast("Stock updated.");
     if (value < 5) showToast("⚠️ Low stock warning! Consider restocking soon.", 3000);
+    saveMedChangeSnapshot(`Updated stock for ${meds[index].name}`);
   }
 };
 
@@ -408,6 +552,7 @@ window.markLate = function(date, name, time, medIndex) {
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(logs));
     showToast('Dose marked as taken.');
+    saveMedChangeSnapshot(`Marked dose taken for ${med.name} at ${time} on ${date}`);
     viewWeeklyTimeline();
   } else {
     showToast('Dose already marked as taken.');
@@ -617,6 +762,7 @@ window.markCalendarTaken = function(iso, medIdx, t) {
     med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(logs));
+    saveMedChangeSnapshot(`Marked dose taken for ${med.name} at ${t} on ${iso}`);
     showToast('Dose marked as taken.');
     showCalendar();
     showCalendarDayDetail(iso);
