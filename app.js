@@ -109,6 +109,14 @@ window.cancelEditMedication = function() {
   renderMedsGrouped();
 };
 
+function logIfMedListChanged(oldMeds, newMeds, reason) {
+  // Only log if there are actual changes in med list:
+  const diff = diffMedLists(oldMeds, newMeds);
+  if (diff.added.length || diff.removed.length || diff.changed.length) {
+    saveMedChangeSnapshot(reason);
+  }
+}
+
 document.getElementById('addMedForm').addEventListener('submit', function(e) {
   e.preventDefault();
   const user = getCurrentUser();
@@ -124,6 +132,7 @@ document.getElementById('addMedForm').addEventListener('submit', function(e) {
     recurrence = { type: "period", start, end };
   }
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  let oldMeds = JSON.parse(JSON.stringify(meds));
   let reason = "";
   if (editMedicationIndex === null) {
     meds.push({
@@ -141,7 +150,7 @@ document.getElementById('addMedForm').addEventListener('submit', function(e) {
     editMedicationIndex = null;
   }
   saveMeds(user, meds);
-  saveMedChangeSnapshot(reason);
+  logIfMedListChanged(oldMeds, meds, reason);
   document.getElementById('addMedForm').reset();
   document.getElementById('addTimeInputs').innerHTML = '';
   addTimeInputToAddForm();
@@ -247,7 +256,6 @@ window.markAllTaken = function(index) {
     med.stock = Math.max(0, (med.stock || 0) - dosesMarked * parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(log));
-    saveMedChangeSnapshot(`Marked all doses taken for ${med.name}`);
     showToast(`Marked ${dosesMarked} dose(s) as taken.`);
     renderMedsGrouped();
   } else {
@@ -271,7 +279,6 @@ window.markTaken = function(index, time) {
   med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
   saveMeds(user, meds);
   localStorage.setItem(user + '_medLogs', JSON.stringify(log));
-  saveMedChangeSnapshot(`Marked dose taken for ${med.name} at ${time}`);
   showToast('Dose marked as taken.');
   renderMedsGrouped();
 };
@@ -279,16 +286,17 @@ window.markTaken = function(index, time) {
 window.deleteMed = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  let oldMeds = JSON.parse(JSON.stringify(meds));
   if (confirm("Delete this medication schedule?")) {
     let medName = meds[index].name;
     meds.splice(index, 1);
     saveMeds(user, meds);
-    saveMedChangeSnapshot(`Deleted ${medName}`);
+    logIfMedListChanged(oldMeds, meds, `Deleted ${medName}`);
     renderMedsGrouped();
   }
 };
 
-// ===== Medication Change History (Sidebar/Collapsible/Export) =====
+// ===== Medication Change History (Sidebar/Collapsible/Export, Consolidate Dates) =====
 
 window.showMedChangeHistory = function() {
   hideAllSections();
@@ -311,45 +319,100 @@ function renderMedChangeHistorySidebar() {
     </div>
   `;
   renderSidebar(history);
-  if (history.length > 1) renderChangeDetail(history, history.length - 1);
+  // Auto-select last date if exists
+  const grouped = groupHistoryByDate(history);
+  const lastDate = Object.keys(grouped).slice(-1)[0];
+  if (lastDate) {
+    renderChangeDetailMulti(history, grouped[lastDate]);
+    // Highlight the last date
+    setTimeout(() => {
+      const li = document.getElementById(`change-date-li-${grouped[lastDate][0]}`);
+      if (li) li.classList.add('active');
+    }, 0);
+  }
 }
 
+function groupHistoryByDate(history) {
+  // Returns { date: [idx, idx, ...], ... }
+  const grouped = {};
+  history.slice(1).forEach((entry, idx) => {
+    const date = entry.date.split('T')[0];
+    if (!grouped[date]) grouped[date] = [];
+    grouped[date].push(idx + 1); // Store index into history array
+  });
+  return grouped;
+}
 function renderSidebar(history) {
   const list = document.getElementById('changeDatesList');
   list.innerHTML = '';
-  history.slice(1).forEach((entry, idx) => {
+  // Group by date (YYYY-MM-DD)
+  const grouped = groupHistoryByDate(history);
+  Object.keys(grouped).forEach(date => {
     const li = document.createElement('li');
-    li.textContent = new Date(entry.date).toLocaleDateString();
+    li.textContent = date;
     li.style.cursor = 'pointer';
     li.style.padding = "7px 10px";
     li.style.marginBottom = "4px";
-    li.onclick = () => renderChangeDetail(history, idx+1);
-    li.id = `change-date-li-${idx+1}`;
+    li.onclick = () => {
+      document.querySelectorAll('#changeDatesList li').forEach(li => li.classList.remove('active'));
+      li.classList.add('active');
+      renderChangeDetailMulti(history, grouped[date]);
+    };
+    li.id = `change-date-li-${grouped[date][0]}`;
     list.appendChild(li);
   });
 }
 
-function getMedChangeHistoryKey() {
-  return getCurrentUser() + '_medChangeHistory';
+function renderChangeDetailMulti(history, idxArr) {
+  const container = document.getElementById('changeHistoryDetail');
+  container.innerHTML = idxArr.map(idx => {
+    const before = history[idx-1].meds;
+    const after = history[idx].meds;
+    const diff = diffMedLists(before, after);
+    let html = `<div class="med-change-entry">
+      <div class="med-change-title">${new Date(history[idx].date).toLocaleDateString()} &mdash;
+        ${diff.added.length ? `<span style="color:green;">${diff.added.map(m=>m.name).join(', ')} was added</span>` : ""}
+        ${diff.removed.length ? `<span style="color:red;">${diff.removed.map(m=>m.name).join(', ')} was removed</span>` : ""}
+        ${diff.changed.length ? diff.changed.map(ch => `<span style="color:orange;">${ch.name}: ${ch.fields.map(f=>f.charAt(0).toUpperCase()+f.slice(1)).join(', ')}</span>`).join('') : ""}
+        <button class="export-btn" style="margin-left:12px;" onclick="exportDateChangePDF(${idx})">Export (PDF)</button>
+      </div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">
+        <div>
+          <b>Before</b>
+          <div id="before-table-${idx}"></div>
+        </div>
+        <div>
+          <b>After</b>
+          <div id="after-table-${idx}"></div>
+        </div>
+      </div>
+    </div>`;
+    setTimeout(() => {
+      renderMedListTable(`before-table-${idx}`, before, diff, "before");
+      renderMedListTable(`after-table-${idx}`, after, diff, "after");
+    }, 0);
+    return html;
+  }).join('');
 }
 
-function saveMedChangeSnapshot(reason = "") {
-  const user = getCurrentUser();
-  const meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
-  const historyKey = getMedChangeHistoryKey();
-  let history = JSON.parse(localStorage.getItem(historyKey)) || [];
-  const now = new Date();
-  history.push({
-    date: now.toISOString(),
-    meds: JSON.parse(JSON.stringify(meds)),
-    reason: reason
+window.exportDateChangePDF = function(idx) {
+  const entry = document.getElementById(`before-table-${idx}`).parentNode.parentNode.parentNode;
+  html2canvas(entry).then(canvas => {
+    const imgData = canvas.toDataURL("image/jpeg");
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: "a4"
+    });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pageWidth;
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("medication-history.pdf");
   });
-  localStorage.setItem(historyKey, JSON.stringify(history));
-}
-
-function getMedChangeHistory() {
-  return JSON.parse(localStorage.getItem(getMedChangeHistoryKey())) || [];
-}
+};
 
 function diffMedLists(before, after) {
   function medKey(med) { return med.name.toLowerCase(); }
@@ -375,38 +438,6 @@ function diffMedLists(before, after) {
   return {added, removed, changed};
 }
 
-function renderChangeDetail(history, idx) {
-  document.querySelectorAll('#changeDatesList li').forEach(li => li.classList.remove('active'));
-  const activeLi = document.getElementById(`change-date-li-${idx}`);
-  if (activeLi) activeLi.classList.add('active');
-  const before = history[idx-1].meds;
-  const after = history[idx].meds;
-  const diff = diffMedLists(before, after);
-  const container = document.getElementById('changeHistoryDetail');
-  let html = `<div class="med-change-entry">
-    <div class="med-change-title">${new Date(history[idx].date).toLocaleDateString()} &mdash;
-      ${diff.added.length ? `<span style="color:green;">${diff.added.map(m=>m.name).join(', ')} was added</span>` : ""}
-      ${diff.removed.length ? `<span style="color:red;">${diff.removed.map(m=>m.name).join(', ')} was removed</span>` : ""}
-      ${diff.changed.length ? diff.changed.map(ch => `<span style="color:orange;">${ch.name}: ${ch.fields.map(f=>f.charAt(0).toUpperCase()+f.slice(1)).join(', ')}</span>`).join('') : ""}
-    </div>
-    <div style="display:flex;gap:24px;flex-wrap:wrap;">
-      <div>
-        <b>Before</b>
-        <div id="before-table"></div>
-        <button class="export-btn" onclick="exportMedListTable('before-table')">Export Before (PDF)</button>
-      </div>
-      <div>
-        <b>After</b>
-        <div id="after-table"></div>
-        <button class="export-btn" onclick="exportMedListTable('after-table')">Export After (PDF)</button>
-      </div>
-    </div>
-  </div>`;
-  container.innerHTML = html;
-  renderMedListTable('before-table', before, diff, "before");
-  renderMedListTable('after-table', after, diff, "after");
-}
-
 function renderMedListTable(containerId, meds, diff, side) {
   let html = `<table class="medlist-table"><tr><th>Name</th><th>Dosage</th><th>Times</th><th>Notes</th></tr>`;
   meds.forEach(m => {
@@ -429,24 +460,25 @@ function renderMedListTable(containerId, meds, diff, side) {
   document.getElementById(containerId).innerHTML = html;
 }
 
-window.exportMedListTable = function(divId) {
-  const node = document.getElementById(divId);
-  html2canvas(node).then(canvas => {
-    const imgData = canvas.toDataURL("image/jpeg");
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "pt",
-      format: "a4"
-    });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pageWidth;
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save("medication-list.pdf");
+function getMedChangeHistoryKey() {
+  return getCurrentUser() + '_medChangeHistory';
+}
+function saveMedChangeSnapshot(reason = "") {
+  const user = getCurrentUser();
+  const meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  const historyKey = getMedChangeHistoryKey();
+  let history = JSON.parse(localStorage.getItem(historyKey)) || [];
+  const now = new Date();
+  history.push({
+    date: now.toISOString(),
+    meds: JSON.parse(JSON.stringify(meds)),
+    reason: reason
   });
-};
+  localStorage.setItem(historyKey, JSON.stringify(history));
+}
+function getMedChangeHistory() {
+  return JSON.parse(localStorage.getItem(getMedChangeHistoryKey())) || [];
+}
 
 // ===== Export Med List PDF/JPEG =====
 
@@ -503,6 +535,7 @@ window.showStockManager = function() {
 window.updateStock = function(index) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  let oldMeds = JSON.parse(JSON.stringify(meds));
   const input = document.getElementById(`stock-input-${index}`);
   const value = parseInt(input.value);
   if (!isNaN(value)) {
@@ -511,7 +544,7 @@ window.updateStock = function(index) {
     showStockManager();
     showToast("Stock updated.");
     if (value < 5) showToast("⚠️ Low stock warning! Consider restocking soon.", 3000);
-    saveMedChangeSnapshot(`Updated stock for ${meds[index].name}`);
+    logIfMedListChanged(oldMeds, meds, `Updated stock for ${meds[index].name}`);
   }
 };
 
@@ -581,7 +614,6 @@ window.markLate = function(date, name, time, medIndex) {
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(logs));
     showToast('Dose marked as taken.');
-    saveMedChangeSnapshot(`Marked dose taken for ${med.name} at ${time} on ${date}`);
     viewWeeklyTimeline();
   } else {
     showToast('Dose already marked as taken.');
@@ -791,7 +823,6 @@ window.markCalendarTaken = function(iso, medIdx, t) {
     med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(logs));
-    saveMedChangeSnapshot(`Marked dose taken for ${med.name} at ${t} on ${iso}`);
     showToast('Dose marked as taken.');
     showCalendar();
     showCalendarDayDetail(iso);
@@ -872,5 +903,20 @@ function requestNotificationPermission() {
   }
 }
 requestNotificationPermission();
+
+// ===== Reset Data Button under Medications =====
+const resetBtn = document.getElementById('resetDataBtn');
+if (resetBtn) {
+  resetBtn.onclick = function() {
+    if (confirm("Are you sure you want to RESET ALL your medication data? This cannot be undone.")) {
+      const user = getCurrentUser();
+      localStorage.removeItem(user + '_medications');
+      localStorage.removeItem(user + '_medLogs');
+      localStorage.removeItem(user + '_medChangeHistory');
+      showToast("All medication data has been reset.");
+      renderMedsGrouped();
+    }
+  };
+}
 
 });
