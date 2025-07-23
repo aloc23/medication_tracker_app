@@ -379,20 +379,7 @@ main {
   background: #005bbf;
 }
 
-/* ---- Reset Data Button ---- */
-.reset-btn {
-  background: #e23c3c;
-  color: #fff;
-  border: none;
-  padding: 7px 16px;
-  border-radius: 7px;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 6px;
-}
-.reset-btn:hover {
-  background: #b22222;
-}
+/* ---- Collapsible Sections ---- */
 .collapsible {
   cursor: pointer;
   background: #eef3fa;
@@ -407,4 +394,19 @@ main {
 }
 .collapsible:hover {
   background: #dde3f0;
+}
+
+/* ---- Reset Data Button ---- */
+.reset-btn {
+  background: #e23c3c;
+  color: #fff;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 7px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.reset-btn:hover {
+  background: #b22222;
 }
