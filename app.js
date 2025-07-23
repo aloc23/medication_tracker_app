@@ -195,28 +195,44 @@ if (uploadMedSheetInput) {
       let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
       let added = 0;
 
-      body.forEach(row => {
-        const name = row[nameIdx]?.trim();
-        if (!name) return; // Skip empty rows
-        const dosage = row[doseIdx] || "1";
-        const times = (row[timesIdx] || '').split(/[,;]/).map(t => t.trim()).filter(Boolean);
-        const notes = row[notesIdx] || "";
-        const stock = parseInt(row[stockIdx]) || 0;
-        let recurrence = null;
-        if (recStartIdx !== -1 && recEndIdx !== -1 && row[recStartIdx] && row[recEndIdx]) {
-          recurrence = { type: "period", start: row[recStartIdx], end: row[recEndIdx] };
-        }
-        meds.push({
-          name,
-          dosage,
-          times,
-          reminders: times.map(() => false), // Default to no reminders
-          notes,
-          stock,
-          recurrence
-        });
-        added++;
-      });
+body.forEach(row => {
+  const name = row[nameIdx]?.toString().trim();
+  if (!name) return; // Skip empty or malformed rows
+
+  const dosage = row[doseIdx] || "1";
+  let times = [];
+  const timesRaw = row[timesIdx];
+  if (Array.isArray(timesRaw)) {
+    times = timesRaw.map(String).map(t => t.trim()).filter(Boolean);
+  } else if (typeof timesRaw === 'string') {
+    times = timesRaw.split(/[,;]/).map(t => t.trim()).filter(Boolean);
+  } else if (typeof timesRaw === 'number') {
+    times = [String(timesRaw)];
+  } else {
+    times = [];
+  }
+  const notes = row[notesIdx] || "";
+  const stock = parseInt(row[stockIdx]) || 0;
+  let recurrence = null;
+  if (
+    recStartIdx !== -1 &&
+    recEndIdx !== -1 &&
+    row[recStartIdx] &&
+    row[recEndIdx]
+  ) {
+    recurrence = { type: "period", start: row[recStartIdx], end: row[recEndIdx] };
+  }
+  meds.push({
+    name,
+    dosage,
+    times,
+    reminders: times.map(() => false), // Default to no reminders
+    notes,
+    stock,
+    recurrence
+  });
+  added++;
+});
 
       localStorage.setItem(user + '_medications', JSON.stringify(meds));
       showToast(`Imported ${added} medications from spreadsheet!`);
