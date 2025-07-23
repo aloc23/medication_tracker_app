@@ -1,380 +1,322 @@
+/* ---- Core Layout ---- */
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background: #f0f4f8;
+  background: #f4f7fa;
+  font-family: "Segoe UI", Arial, sans-serif;
   margin: 0;
-  padding: 0;
   color: #222;
 }
 header.sticky-header {
-  background: #007bff;
+  background: #2a75db;
   color: #fff;
-  padding: 20px 0 10px 0;
+  padding: 0 0 10px 0;
+  margin-bottom: 18px;
   position: sticky;
   top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+  z-index: 10;
+  box-shadow: 0 2px 8px #0002;
 }
 header.sticky-header h1 {
-  margin: 0 0 8px 0;
-  font-size: 2rem;
-  text-align: center;
+  margin: 0 0 10px 0;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 0.03em;
+  font-size: 2.1em;
+  padding: 18px 0 0 16px;
 }
 header.sticky-header nav {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
   gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 0 8px 12px;
 }
 header.sticky-header nav button {
   background: #fff;
-  color: #007bff;
+  color: #2a75db;
   border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background .2s, color .2s;
-  margin-bottom: 5px;
-}
-header.sticky-header nav button:hover {
-  background: #0056b3;
-  color: #fff;
-}
-main {
-  max-width: 700px;
-  margin: 30px auto 0 auto;
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.09);
-}
-.section-title {
-  margin-top: 0;
-  color: #007bff;
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 12px;
-  letter-spacing: 0.5px;
-}
-#medList .med-card,
-#weeklyView .med-card {
-  margin-bottom: 16px;
-  border: 1px solid #e3eaf3;
   border-radius: 8px;
-  overflow: hidden;
-  background: #f7faff;
-}
-#medList .med-card summary,
-#weeklyView .med-card summary {
-  background: #e3eaf3;
-  padding: 10px 18px;
-  font-size: 1.15rem;
-  cursor: pointer;
-  outline: none;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-#medList .med-card[open] summary,
-#weeklyView .med-card[open] summary {
-  background: #d0e8fd;
-}
-.stock-badge {
-  background: #dde8f1;
-  border-radius: 20px;
-  padding: 2px 10px;
-  font-size: 0.95em;
-  margin-left: 5px;
-}
-.stock-green { background: #d4edda !important; color: #256029; }
-.stock-orange { background: #fff3cd !important; color: #795548; }
-.stock-red { background: #f8d7da !important; color: #c82333; }
-form#medForm {
-  background: #f3f7fb;
-  padding: 18px 14px 10px 14px;
-  border-radius: 10px;
-  margin-top: 22px;
-  box-shadow: 0 0 0 1px #e3eaf3;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-form#medForm input[type="text"],
-form#medForm input[type="number"],
-form#medForm textarea {
-  width: 100%;
-  padding: 9px 10px;
-  margin-bottom: 6px;
-  border: 1px solid #cbd6e2;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border .2s;
-  background: #fff;
-}
-form#medForm input[type="text"]:focus,
-form#medForm input[type="number"]:focus,
-form#medForm textarea:focus {
-  border: 1.5px solid #007bff;
-  outline: none;
-}
-#timeInputs {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.time-input-row {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 3px;
-}
-.time-input-row input[type="time"] {
-  padding: 3px 6px;
-  font-size: 1rem;
-  border-radius: 4px;
-  border: 1px solid #cbd6e2;
-  background: #fff;
-}
-.time-input-row button {
-  background: #e57373;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 1.1em;
-  padding: 0 8px;
-  cursor: pointer;
-}
-.time-input-row button:hover {
-  background: #b71c1c;
-}
-.time-input-row label {
-  font-size: 0.98em;
-  color: #444;
-  cursor: pointer;
-}
-form#medForm button[type="button"] {
-  margin-bottom: 0;
-  background: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 5px 12px;
+  padding: 7px 18px;
   font-size: 1em;
   font-weight: 500;
   cursor: pointer;
-  margin-top: 3px;
+  transition: background 0.15s;
+  box-shadow: 0 1px 4px #0001;
 }
-form#medForm button[type="button"]:hover {
-  background: #0056b3;
-}
-form#medForm button[type="submit"] {
-  background: #28a745;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 0;
-  font-size: 1.1em;
-  font-weight: 600;
-  margin-top: 10px;
-  cursor: pointer;
-  transition: background .18s;
-}
-form#medForm button[type="submit"]:hover {
-  background: #207f3c;
+header.sticky-header nav button:hover {
+  background: #e8f0fe;
 }
 
+main {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 0 10px;
+}
+
+/* ---- Section Titles ---- */
+.section-title {
+  color: #2a75db;
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.5em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Medications List ---- */
+.med-card {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 6px #0001;
+  padding: 0 0 12px 0;
+}
+.med-card summary {
+  cursor: pointer;
+  font-size: 1.14em;
+  font-weight: 500;
+  padding: 13px 12px 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #e3e8ee;
+}
+.stock-badge {
+  font-size: 0.97em;
+  margin-left: auto;
+  padding: 3px 11px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+.stock-green {
+  background: #e3fbe3;
+  color: #208820;
+  border: 1px solid #b2e8b2;
+}
+.stock-orange {
+  background: #fff3e0;
+  color: #b26a00;
+  border: 1px solid #ffd699;
+}
+.stock-red {
+  background: #ffeaea;
+  color: #b22c2c;
+  border: 1px solid #ff9a9a;
+}
 .mark-all-btn {
-  background: #17a2b8;
+  margin: 10px 10px 0 0;
+  padding: 4px 13px;
+  background: #2a75db;
   color: #fff;
   border: none;
-  border-radius: 5px;
-  padding: 4px 10px;
-  font-size: 0.98em;
-  margin-right: 7px;
+  border-radius: 7px;
+  font-weight: 500;
   cursor: pointer;
 }
 .mark-all-btn:hover {
-  background: #09869c;
+  background: #155fa0;
 }
 
-#stockManagerSection .stock-item {
-  background: #f6fbff;
-  border: 1px solid #e3eaf3;
+/* ---- Add/Edit Medication Form ---- */
+#addMedForm input[type="text"],
+#addMedForm input[type="number"],
+#addMedForm input[type="time"],
+#addMedForm input[type="date"],
+#addMedForm textarea {
+  font-size: 1em;
+  padding: 7px 11px;
+  margin-bottom: 9px;
   border-radius: 6px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 1.06em;
+  border: 1px solid #b1c2df;
+  width: 100%;
+  box-sizing: border-box;
 }
-#stockManagerSection .stock-item input[type="number"] {
-  width: 65px;
-  padding: 4px 7px;
-  border-radius: 4px;
-  border: 1px solid #cbd6e2;
+#addMedForm textarea {
+  resize: vertical;
 }
-#stockManagerSection .stock-item button {
-  background: #007bff;
-  color: #fff;
+#addTimeBtn {
+  margin-bottom: 9px;
+  background: #d7e9ff;
+  color: #2a75db;
   border: none;
-  border-radius: 5px;
-  padding: 4px 10px;
-  font-size: 0.97em;
+  border-radius: 7px;
+  padding: 5px 11px;
+  font-weight: 500;
   cursor: pointer;
-  margin-left: 4px;
 }
-#stockManagerSection .stock-item button:hover {
-  background: #0056b3;
+#addTimeBtn:hover {
+  background: #b6d2ff;
 }
-#calendarNav {
+.time-input-row {
+  margin-bottom: 7px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 9px;
+}
+.time-input-row button {
+  background: #eee;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  color: #b22222;
+  font-size: 1em;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+#addMedSubmitBtn, #addMedCancelBtn {
+  margin-top: 9px;
+  margin-right: 9px;
+  padding: 6px 17px;
+  border-radius: 7px;
+  border: none;
+  font-weight: 500;
+}
+#addMedSubmitBtn {
+  background: #2a75db;
+  color: #fff;
+}
+#addMedSubmitBtn:hover {
+  background: #155fa0;
+}
+#addMedCancelBtn {
+  background: #eee;
+  color: #444;
+}
+#addMedCancelBtn:hover {
+  background: #ccc;
+}
+
+/* ---- Calendar ---- */
+#calendarNav {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#calendarNav b {
+  font-size: 1.15em;
+  flex: 1;
+  text-align: center;
 }
 #calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  background: #f6fbff;
-  padding: 8px 0;
-  border-radius: 10px;
-  margin-bottom: 10px;
+  gap: 3px;
 }
-.calendar-day {
-  background: #e3eaf3;
-  min-height: 48px;
+#calendar > div {
+  min-height: 34px;
+  background: #f7fafd;
   border-radius: 6px;
-  padding: 2px;
-  font-size: 0.99em;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+  text-align: center;
+  font-size: 1em;
+  padding: 2px 0 0 0;
   position: relative;
+  cursor: pointer;
 }
 .calendar-today {
-  border: 2px solid #007bff;
+  border: 2px solid #2a75db !important;
+  box-shadow: 0 0 4px #62a6ff;
 }
-.calendar-day.has-dose {
-  background: #d0e8fd;
+.has-dose {
+  background: #e8f0fe !important;
 }
-.calendar-day .dose-badge {
-  font-size: 0.81em;
-  background: #28a745;
-  color: #fff;
-  border-radius: 5px;
-  padding: 0 5px;
-  margin-top: 3px;
+.dose-badge {
+  background: #e8f0fe;
+  color: #3367d6;
+  border-radius: 7px;
+  padding: 1px 7px;
+  font-size: 0.88em;
+  margin-left: 2px;
 }
-.calendar-day .dose-badge.missed {
-  background: #c82333;
+.dose-badge.missed {
+  background: #ffeaea;
+  color: #b22c2c;
 }
-.calendar-day .dose-badge.upcoming {
-  background: #ffc107;
-  color: #333;
+.dose-badge.upcoming {
+  background: #e3fbe3;
+  color: #208820;
 }
 #calendarDayDetail {
-  margin-top: 10px;
-  background: #f7faff;
-  border-radius: 8px;
-  padding: 10px 12px;
-  display: none;
-}
-
-.weekly-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 6px 0 7px 0;
+  margin-top: 18px;
   background: #fff;
-}
-.weekly-table th,
-.weekly-table td {
-  border: 1px solid #cbe0fc;
-  padding: 4px 7px;
-  text-align: center;
-  font-size: 1em;
-}
-.weekly-taken {
-  background: #d4edda;
-  color: #256029;
-}
-.weekly-missed {
-  background: #f8d7da;
-  color: #c82333;
-}
-.weekly-upcoming {
-  background: #fff3cd;
-  color: #795548;
-}
-.mark-late-btn {
-  background: #ef5350;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 1px 7px;
-  cursor: pointer;
-  font-size: 1em;
-}
-.mark-late-btn:hover {
-  background: #b71c1c;
+  border-radius: 12px;
+  box-shadow: 0 1px 6px #0001;
+  padding: 14px 19px;
+  font-size: 1.07em;
 }
 
-#chartSection {
-  text-align: center;
-}
-#chartRange {
-  padding: 5px 10px;
-  border-radius: 5px;
-  border: 1px solid #d4e0ef;
-  font-size: 1em;
+/* ---- Stock Manager ---- */
+.stock-item {
+  background: #fff;
+  border-radius: 8px;
   margin-bottom: 10px;
-  margin-right: 5px;
+  box-shadow: 0 1px 4px #0001;
+  padding: 9px 13px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.low-stock-warning {
+  color: #c00;
+  font-weight: bold;
 }
 
+/* ---- Weekly Timeline ---- */
+.weekly-card {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 6px #0001;
+  padding: 0 0 12px 0;
+}
+.weekly-card summary {
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: 500;
+  padding: 12px 12px 10px 16px;
+  border-bottom: 1px solid #e3e8ee;
+}
+
+/* ---- Chart Section ---- */
+#chartSection {
+  background: #fff;
+  border-radius: 11px;
+  box-shadow: 0 1px 6px #0001;
+  padding: 15px 25px 24px 25px;
+  margin-bottom: 18px;
+}
+#adherenceChart {
+  margin-bottom: 20px;
+}
+
+/* ---- History Table ---- */
 #historySection table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 6px;
-  background: #fff;
+  margin-bottom: 16px;
 }
-#historySection th,
-#historySection td {
-  border: 1px solid #cbe0fc;
-  padding: 4px 8px;
+#historySection th, #historySection td {
+  border: 1px solid #bbb;
+  padding: 6px 12px;
   text-align: left;
-  font-size: 1em;
-}
-#historySection th {
-  background: #e3eaf3;
-  color: #007bff;
 }
 
-@media (max-width: 800px) {
-  main {
-    max-width: 98vw;
-    padding: 7vw 2vw 6vw 2vw;
-    font-size: 1em;
-  }
-  .section-title {
-    font-size: 1.1rem;
-  }
-  header.sticky-header h1 {
-    font-size: 1.3rem;
-  }
-  .weekly-table th, .weekly-table td, #historySection th, #historySection td {
-    font-size: 0.93em;
-    padding: 3px 3px;
-  }
+/* ---- Toast ---- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2a75db;
+  color: #fff;
+  padding: 10px 28px;
+  border-radius: 7px;
+  box-shadow: 0 2px 10px #0002;
+  font-size: 1.08em;
+  z-index: 9999;
+  opacity: 0.98;
 }
 
-/* Sidebar-style Change History and Diff Table Enhancements */
+/* ---- Sidebar-style Change History ---- */
 #changeDatesList {
   list-style: none;
   padding: 0;
@@ -435,4 +377,19 @@ form#medForm button[type="submit"]:hover {
 }
 .export-btn:hover {
   background: #005bbf;
+}
+
+/* ---- Reset Data Button ---- */
+.reset-btn {
+  background: #e23c3c;
+  color: #fff;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 7px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.reset-btn:hover {
+  background: #b22222;
 }
