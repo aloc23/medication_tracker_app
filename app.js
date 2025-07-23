@@ -416,6 +416,10 @@ window.exportDateChangePDF = function(idx) {
 
 window.exportDateChangeExcel = function(idx) {
   const history = getMedChangeHistory();
+  if (!history[idx] || !history[idx - 1]) {
+    alert("No data for this change entry.");
+    return;
+  }
   const before = history[idx-1].meds;
   const after = history[idx].meds;
   exportMedCompareToExcel(before, after, "medication-change.xlsx");
