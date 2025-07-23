@@ -110,7 +110,6 @@ window.cancelEditMedication = function() {
 };
 
 function logIfMedListChanged(oldMeds, newMeds, reason) {
-  // Only log if there are actual changes in med list:
   const diff = diffMedLists(oldMeds, newMeds);
   if (diff.added.length || diff.removed.length || diff.changed.length) {
     saveMedChangeSnapshot(reason);
@@ -296,7 +295,7 @@ window.deleteMed = function(index) {
   }
 };
 
-// ===== Medication Change History (Sidebar/Collapsible/Export, Consolidate Dates) =====
+// ===== Medication Change History (Sidebar/Collapsible/Export, Consolidate Dates, Export Excel) =====
 
 window.showMedChangeHistory = function() {
   hideAllSections();
@@ -374,7 +373,8 @@ function renderChangeDetailMulti(history, idxArr) {
         ${diff.added.length ? `<span style="color:green;">${diff.added.map(m=>m.name).join(', ')} was added</span>` : ""}
         ${diff.removed.length ? `<span style="color:red;">${diff.removed.map(m=>m.name).join(', ')} was removed</span>` : ""}
         ${diff.changed.length ? diff.changed.map(ch => `<span style="color:orange;">${ch.name}: ${ch.fields.map(f=>f.charAt(0).toUpperCase()+f.slice(1)).join(', ')}</span>`).join('') : ""}
-        <button class="export-btn" style="margin-left:12px;" onclick="exportDateChangePDF(${idx})">Export (PDF)</button>
+        <button class="export-btn" style="margin-left:12px;" onclick="exportDateChangePDF(${idx})">Export PDF</button>
+        <button class="export-btn" style="margin-left:8px;" onclick="exportDateChangeExcel(${idx})">Export Excel</button>
       </div>
       <div style="display:flex;gap:24px;flex-wrap:wrap;">
         <div>
@@ -412,6 +412,13 @@ window.exportDateChangePDF = function(idx) {
     pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
     pdf.save("medication-history.pdf");
   });
+};
+
+window.exportDateChangeExcel = function(idx) {
+  const history = getMedChangeHistory();
+  const before = history[idx-1].meds;
+  const after = history[idx].meds;
+  exportMedCompareToExcel(before, after, "medication-change.xlsx");
 };
 
 function diffMedLists(before, after) {
@@ -480,7 +487,7 @@ function getMedChangeHistory() {
   return JSON.parse(localStorage.getItem(getMedChangeHistoryKey())) || [];
 }
 
-// ===== Export Med List PDF/JPEG =====
+// ===== Export Med List PDF/JPEG/Excel =====
 
 window.exportMedListPDF = function() {
   const medListSection = document.getElementById("medListSection");
@@ -510,6 +517,44 @@ window.exportMedListJPEG = function() {
     link.click();
   });
 };
+
+window.exportCurrentMedListExcel = function() {
+  const user = getCurrentUser();
+  let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  exportMedListToExcel(meds);
+};
+
+function exportMedListToExcel(meds, filename = "medication-list.xlsx") {
+  const data = [["Name", "Dosage", "Times", "Notes"]];
+  meds.forEach(m => {
+    data.push([
+      m.name, m.dosage, (m.times||[]).join(", "), m.notes || ""
+    ]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Medications");
+  XLSX.writeFile(wb, filename);
+}
+
+function exportMedCompareToExcel(before, after, filename = "medication-change.xlsx") {
+  const dataBefore = [["Name", "Dosage", "Times", "Notes"]];
+  before.forEach(m => {
+    dataBefore.push([
+      m.name, m.dosage, (m.times||[]).join(", "), m.notes || ""
+    ]);
+  });
+  const dataAfter = [["Name", "Dosage", "Times", "Notes"]];
+  after.forEach(m => {
+    dataAfter.push([
+      m.name, m.dosage, (m.times||[]).join(", "), m.notes || ""
+    ]);
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dataBefore), "Before");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dataAfter), "After");
+  XLSX.writeFile(wb, filename);
+}
 
 // ===== Stock Management =====
 
