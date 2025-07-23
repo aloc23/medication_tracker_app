@@ -597,14 +597,27 @@ window.updateStock = function(index) {
   }
 };
 
-// ===== Weekly Timeline =====
+// ===== Weekly Timeline (Collapsible under Calendar) =====
+
+window.toggleWeeklyTimeline = function() {
+  const section = document.getElementById('weeklyCollapsible');
+  const icon = document.getElementById('weeklyCollapseIcon');
+  if (section.style.display === 'none' || section.style.display === '') {
+    section.style.display = '';
+    icon.textContent = '[-]';
+    viewWeeklyTimeline();
+  } else {
+    section.style.display = 'none';
+    icon.textContent = '[+]';
+  }
+};
 
 window.viewWeeklyTimeline = function() {
-  hideAllSections();
+  const section = document.getElementById('weeklyCollapsible');
+  if (section && section.style.display === 'none') return;
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   const weeklyView = document.getElementById('weeklyView');
-  document.getElementById('weeklyViewSection').style.display = 'block';
   weeklyView.innerHTML = '';
   const today = new Date();
   const days = [];
@@ -650,6 +663,7 @@ window.viewWeeklyTimeline = function() {
     weeklyView.appendChild(details);
   });
 };
+
 window.markLate = function(date, name, time, medIndex) {
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
@@ -669,15 +683,28 @@ window.markLate = function(date, name, time, medIndex) {
   }
 };
 
-// ===== Adherence Chart =====
+// ===== Adherence Chart (Collapsible under History) =====
+
+window.toggleAdherenceChart = function() {
+  const section = document.getElementById('adherenceCollapsible');
+  const icon = document.getElementById('adherenceCollapseIcon');
+  if (section.style.display === 'none' || section.style.display === '') {
+    section.style.display = '';
+    icon.textContent = '[-]';
+    renderAdherenceChart();
+  } else {
+    section.style.display = 'none';
+    icon.textContent = '[+]';
+  }
+};
 
 window.renderAdherenceChart = function() {
-  hideAllSections();
+  const section = document.getElementById('adherenceCollapsible');
+  if (section && section.style.display === 'none') return;
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
-  document.getElementById('chartSection').style.display = 'block';
-
   const canvas = document.getElementById('adherenceChart');
+  if (!canvas) return;
   if (
     window.adherenceChart &&
     typeof window.adherenceChart.destroy === "function"
@@ -727,34 +754,38 @@ window.renderAdherenceChart = function() {
   });
 };
 
-// ===== Calendar =====
+// ===== Calendar (with correct month title) =====
 
- window.showCalendar = function(monthDelta = 0) {
+window.showCalendar = function(monthDelta = 0) {
   hideAllSections();
   document.getElementById('calendarSection').style.display = 'block';
 
-  let today = new Date();
-  if (!window._calendarMonth) window._calendarMonth = today.getMonth();
-  if (!window._calendarYear) window._calendarYear = today.getFullYear();
-
-  window._calendarMonth += monthDelta;
-  if (window._calendarMonth < 0) {
-    window._calendarMonth = 11;
-    window._calendarYear--;
+  if (window._calendarMonth === undefined || window._calendarYear === undefined) {
+    const today = new Date();
+    window._calendarMonth = today.getMonth();
+    window._calendarYear = today.getFullYear();
   }
-  if (window._calendarMonth > 11) {
-    window._calendarMonth = 0;
-    window._calendarYear++;
+  if (typeof monthDelta === 'number' && monthDelta !== 0) {
+    window._calendarMonth += monthDelta;
+    if (window._calendarMonth < 0) {
+      window._calendarMonth = 11;
+      window._calendarYear--;
+    }
+    if (window._calendarMonth > 11) {
+      window._calendarMonth = 0;
+      window._calendarYear++;
+    }
   }
 
+  // Set correct viewed month/year
   const month = window._calendarMonth;
   const year = window._calendarYear;
 
-  // Nav bar
+  // Month title - FIXED!
   const navDiv = document.getElementById('calendarNav');
   navDiv.innerHTML = `
     <button onclick="showCalendar(-1)">&#8592; Prev</button>
-    <b>${today.toLocaleString('default', { month: 'long' })} ${year}</b>
+    <b>${new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' })}</b>
     <button onclick="showCalendar(1)">Next &#8594;</button>
   `;
 
@@ -786,7 +817,9 @@ window.renderAdherenceChart = function() {
     const iso = new Date(year, month, date).toISOString().split('T')[0];
     const dayDiv = document.createElement('div');
     dayDiv.className = 'calendar-day';
-    if (iso === (new Date()).toISOString().split('T')[0]) dayDiv.classList.add('calendar-today');
+    const today = new Date();
+    const todayIso = today.toISOString().split('T')[0];
+    if (iso === todayIso) dayDiv.classList.add('calendar-today');
 
     // Check if doses scheduled
     let totalDoses = 0, taken = 0, missed = 0, upcoming = 0;
@@ -827,6 +860,8 @@ window.renderAdherenceChart = function() {
   }
   document.getElementById('calendarDayDetail').style.display = 'none';
 };
+
+// ===== Calendar Day Detail and Marking =====
 
 window.showCalendarDayDetail = function(iso) {
   const user = getCurrentUser();
@@ -880,7 +915,7 @@ window.markCalendarTaken = function(iso, medIdx, t) {
   }
 };
 
-// ===== Export Logs =====
+// ===== Export Logs (CSV) Button under History =====
 
 window.exportLogs = function() {
   const user = getCurrentUser();
@@ -917,6 +952,11 @@ window.showHistory = function() {
   html += '</table>';
   historyDiv.innerHTML = html;
   document.getElementById('historySection').style.display = 'block';
+  // Make sure the Adherence and CSV collapsibles are closed on opening history
+  var adherenceSection = document.getElementById('adherenceCollapsible');
+  if (adherenceSection) adherenceSection.style.display = 'none';
+  var adherenceIcon = document.getElementById('adherenceCollapseIcon');
+  if (adherenceIcon) adherenceIcon.textContent = '[+]';
 };
 
 // ===== Run Out Date Calculation =====
@@ -967,5 +1007,17 @@ if (resetBtn) {
     }
   };
 }
+
+// ===== On startup: make sure collapsibles are closed =====
+var adherenceSection = document.getElementById('adherenceCollapsible');
+if (adherenceSection) adherenceSection.style.display = 'none';
+var adherenceIcon = document.getElementById('adherenceCollapseIcon');
+if (adherenceIcon) adherenceIcon.textContent = '[+]';
+var weeklySection = document.getElementById('weeklyCollapsible');
+if (weeklySection) weeklySection.style.display = 'none';
+var weeklyIcon = document.getElementById('weeklyCollapseIcon');
+if (weeklyIcon) weeklyIcon.textContent = '[+]';
+
+});
 
 });
