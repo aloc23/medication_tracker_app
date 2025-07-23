@@ -165,6 +165,68 @@ document.getElementById('addMedForm').addEventListener('submit', function(e) {
   renderMedsGrouped();
 });
 
+// ===== Spreadsheet Upload for Add Medication =====
+
+const uploadMedSheetInput = document.getElementById('uploadMedSheet');
+if (uploadMedSheetInput) {
+  uploadMedSheetInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      // Assume first sheet
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+      // Expected headers: Name, Dosage, Times (comma or semicolon separated), Notes, Stock, [RecurrenceStart], [RecurrenceEnd]
+      const [header, ...body] = rows;
+      const nameIdx = header.findIndex(h => h.toLowerCase().includes('name'));
+      const doseIdx = header.findIndex(h => h.toLowerCase().includes('dosage'));
+      const timesIdx = header.findIndex(h => h.toLowerCase().includes('time'));
+      const notesIdx = header.findIndex(h => h.toLowerCase().includes('note'));
+      const stockIdx = header.findIndex(h => h.toLowerCase().includes('stock'));
+      const recStartIdx = header.findIndex(h => h.toLowerCase().includes('start'));
+      const recEndIdx = header.findIndex(h => h.toLowerCase().includes('end'));
+
+      const user = getCurrentUser();
+      let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+      let added = 0;
+
+      body.forEach(row => {
+        const name = row[nameIdx]?.trim();
+        if (!name) return; // Skip empty rows
+        const dosage = row[doseIdx] || "1";
+        const times = (row[timesIdx] || '').split(/[,;]/).map(t => t.trim()).filter(Boolean);
+        const notes = row[notesIdx] || "";
+        const stock = parseInt(row[stockIdx]) || 0;
+        let recurrence = null;
+        if (recStartIdx !== -1 && recEndIdx !== -1 && row[recStartIdx] && row[recEndIdx]) {
+          recurrence = { type: "period", start: row[recStartIdx], end: row[recEndIdx] };
+        }
+        meds.push({
+          name,
+          dosage,
+          times,
+          reminders: times.map(() => false), // Default to no reminders
+          notes,
+          stock,
+          recurrence
+        });
+        added++;
+      });
+
+      localStorage.setItem(user + '_medications', JSON.stringify(meds));
+      showToast(`Imported ${added} medications from spreadsheet!`);
+      renderMedsGrouped();
+      e.target.value = ''; // Reset file input
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 // ===== Medication List Logic =====
 
 window.renderMedsGrouped = function() {
