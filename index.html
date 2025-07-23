@@ -11,6 +11,7 @@
   <meta name="theme-color" content="#007bff" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <header class="sticky-header">
@@ -35,6 +36,7 @@
       <div id="medListExportBtns" style="margin:12px 0;">
         <button onclick="exportMedListPDF()">Export Med List as PDF</button>
         <button onclick="exportMedListJPEG()">Export Med List as JPEG</button>
+        <button onclick="exportCurrentMedListExcel()">Export Med List as Excel</button>
       </div>
       <button id="resetDataBtn" class="reset-btn" style="margin-bottom:12px;">Reset All Data</button>
     </section>
