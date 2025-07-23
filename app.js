@@ -3,7 +3,13 @@ document.addEventListener("DOMContentLoaded", function () {
 // ===== Core Utility Functions =====
 
 function getCurrentUser() {
-  return localStorage.getItem('currentUser');
+  // Use a default user for demo; replace with actual logic if user accounts are implemented
+  let user = localStorage.getItem('currentUser');
+  if (!user) {
+    user = 'default';
+    localStorage.setItem('currentUser', user);
+  }
+  return user;
 }
 
 function saveMeds(user, meds) {
@@ -18,8 +24,8 @@ function hideAllSections() {
   document.getElementById('medListSection').style.display = 'none';
   document.getElementById('stockManagerSection').style.display = 'none';
   document.getElementById('calendarSection').style.display = 'none';
-  document.getElementById('weeklyViewSection').style.display = 'none';
-  document.getElementById('chartSection').style.display = 'none';
+  document.getElementById('weeklyViewSection') && (document.getElementById('weeklyViewSection').style.display = 'none');
+  document.getElementById('chartSection') && (document.getElementById('chartSection').style.display = 'none');
   document.getElementById('historySection').style.display = 'none';
   document.getElementById('addMedSection').style.display = 'none';
   document.getElementById('medChangeHistorySection').style.display = 'none';
@@ -104,7 +110,6 @@ attachAddRecurrenceEventHandlers();
 
 window.cancelEditMedication = function() {
   editMedicationIndex = null;
-  showAddMedication();
   document.getElementById('addMedSection').style.display = 'none';
   renderMedsGrouped();
 };
@@ -169,6 +174,10 @@ window.renderMedsGrouped = function() {
   const medList = document.getElementById('medList');
   document.getElementById('medListSection').style.display = 'block';
   medList.innerHTML = '';
+  if (meds.length === 0) {
+    medList.innerHTML = "<i>No medications added.</i>";
+    return;
+  }
   const grouped = {};
   meds.forEach((med, i) => {
     if (!grouped[med.name]) grouped[med.name] = [];
@@ -1018,6 +1027,7 @@ if (weeklySection) weeklySection.style.display = 'none';
 var weeklyIcon = document.getElementById('weeklyCollapseIcon');
 if (weeklyIcon) weeklyIcon.textContent = '[+]';
 
-});
+// ===== Show medications list by default =====
+renderMedsGrouped();
 
 });
