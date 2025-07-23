@@ -1,222 +1,286 @@
 body {
-  background: #f4f7fa;
-  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #f4faff 0%, #ecf2fd 100%);
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   margin: 0;
-  color: #222;
+  color: #23233a;
+  min-height: 100vh;
 }
+
+/* Header and Navigation */
 header.sticky-header {
-  background: #2a75db;
+  background: rgba(42,117,219,0.94);
   color: #fff;
   padding: 0 0 10px 0;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 2px 8px #0002;
+  box-shadow: 0 4px 24px #2a75db18;
+  backdrop-filter: blur(4px);
+  border-bottom: 1.5px solid #e3efff71;
 }
 header.sticky-header h1 {
-  margin: 0 0 10px 0;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  font-size: 2.1em;
-  padding: 18px 0 0 16px;
+  margin: 0 0 12px 0;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-size: 2.35em;
+  padding: 22px 0 0 24px;
+  text-shadow: 0 2px 8px #12428633;
 }
 header.sticky-header nav {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
-  padding: 0 0 8px 12px;
+  padding: 0 0 12px 20px;
 }
 header.sticky-header nav button {
-  background: #fff;
+  background: linear-gradient(90deg, #fff 40%, #eaf1fa 100%);
   color: #2a75db;
   border: none;
-  border-radius: 8px;
-  padding: 7px 18px;
-  font-size: 1em;
-  font-weight: 500;
+  border-radius: 12px;
+  padding: 9px 22px;
+  font-size: 1.05em;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
-  box-shadow: 0 1px 4px #0001;
+  transition: background 0.18s, box-shadow 0.18s, color 0.12s;
+  box-shadow: 0 2.5px 8px #85bfff19;
+  outline: none;
 }
-header.sticky-header nav button:hover {
-  background: #e8f0fe;
+header.sticky-header nav button:hover, header.sticky-header nav button:focus {
+  background: linear-gradient(90deg, #dbeafe 40%, #b6dbff 100%);
+  color: #114fa6;
+  box-shadow: 0 6px 18px #2a75db30;
 }
 
+/* Main Layout */
 main {
-  max-width: 900px;
-  margin: 30px auto;
-  padding: 0 10px;
+  max-width: 950px;
+  margin: 36px auto 30px auto;
+  padding: 0 18px;
 }
+
+/* Section Titles */
 .section-title {
-  color: #2a75db;
+  color: #2050aa;
   margin-top: 0;
-  margin-bottom: 16px;
-  font-size: 1.5em;
-  font-weight: 600;
+  margin-bottom: 18px;
+  font-size: 1.6em;
+  font-weight: 800;
   letter-spacing: 0.01em;
 }
+
+/* Medication Cards */
 .med-card {
-  background: #fff;
-  border-radius: 12px;
-  margin-bottom: 18px;
-  box-shadow: 0 1px 6px #0001;
-  padding: 0 0 12px 0;
+  background: rgba(255,255,255,0.92);
+  border-radius: 20px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 22px #007bff07, 0 1.5px 4px #0001;
+  padding: 0 0 16px 0;
+  border: 1.5px solid #d1e2fa;
+  transition: box-shadow 0.18s, transform 0.14s;
+}
+.med-card:hover {
+  box-shadow: 0 10px 28px #008cff22, 0 2px 8px #0002;
+  transform: translateY(-2px) scale(1.012);
 }
 .med-card summary {
   cursor: pointer;
-  font-size: 1.14em;
-  font-weight: 500;
-  padding: 13px 12px 10px 16px;
+  font-size: 1.18em;
+  font-weight: 700;
+  padding: 16px 12px 12px 22px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   border-bottom: 1px solid #e3e8ee;
+  user-select: none;
+  outline: none;
 }
 .stock-badge {
-  font-size: 0.97em;
+  font-size: 1em;
   margin-left: auto;
-  padding: 3px 11px;
-  border-radius: 12px;
-  font-weight: bold;
+  padding: 4px 13px;
+  border-radius: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1.5px solid #e3fbe3;
+  background: linear-gradient(90deg, #f4fff4 0%, #e3fae3 100%);
 }
 .stock-green {
-  background: #e3fbe3;
+  background: linear-gradient(90deg, #f4fff4 0%, #e3fae3 100%);
   color: #208820;
-  border: 1px solid #b2e8b2;
+  border-color: #b2e8b2;
 }
 .stock-orange {
-  background: #fff3e0;
+  background: linear-gradient(90deg, #fff7e7 0%, #fff3e0 100%);
   color: #b26a00;
-  border: 1px solid #ffd699;
+  border-color: #ffd699;
 }
 .stock-red {
-  background: #ffeaea;
+  background: linear-gradient(90deg, #fff4f4 0%, #ffeaea 100%);
   color: #b22c2c;
-  border: 1px solid #ff9a9a;
+  border-color: #ff9a9a;
 }
 .mark-all-btn {
-  margin: 10px 10px 0 0;
-  padding: 4px 13px;
-  background: #2a75db;
+  margin: 14px 10px 0 0;
+  padding: 6px 16px;
+  background: linear-gradient(90deg, #2a75db 65%, #7fbfff 100%);
   color: #fff;
   border: none;
-  border-radius: 7px;
-  font-weight: 500;
+  border-radius: 9px;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 2px 8px #2a75db11;
+  font-size: 1em;
+  transition: background 0.15s, box-shadow 0.15s;
 }
-.mark-all-btn:hover {
-  background: #155fa0;
+.mark-all-btn:hover, .mark-all-btn:focus {
+  background: linear-gradient(90deg, #1753a9 60%, #58a6ff 100%);
+  box-shadow: 0 6px 16px #2a75db22;
+  outline: none;
 }
+
+/* Add/Edit Medication Form */
 #addMedForm input[type="text"],
 #addMedForm input[type="number"],
 #addMedForm input[type="time"],
 #addMedForm input[type="date"],
 #addMedForm textarea {
-  font-size: 1em;
-  padding: 7px 11px;
-  margin-bottom: 9px;
-  border-radius: 6px;
-  border: 1px solid #b1c2df;
+  font-size: 1.08em;
+  padding: 9px 13px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: 1.5px solid #b1c2df;
   width: 100%;
   box-sizing: border-box;
+  background: #f7fafd;
+  transition: border-color 0.14s;
+}
+#addMedForm input:focus, #addMedForm textarea:focus {
+  border-color: #2a75db;
+  outline: 0;
 }
 #addMedForm textarea {
   resize: vertical;
 }
 #addTimeBtn {
-  margin-bottom: 9px;
-  background: #d7e9ff;
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, #d7e9ff 0%, #cfecff 100%);
   color: #2a75db;
   border: none;
-  border-radius: 7px;
-  padding: 5px 11px;
-  font-weight: 500;
+  border-radius: 9px;
+  padding: 7px 15px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s;
 }
-#addTimeBtn:hover {
-  background: #b6d2ff;
+#addTimeBtn:hover, #addTimeBtn:focus {
+  background: linear-gradient(90deg, #b6d2ff 0%, #eaf3fd 100%);
+  outline: none;
 }
 .time-input-row {
-  margin-bottom: 7px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 13px;
 }
 .time-input-row button {
-  background: #eee;
+  background: #f44e4e;
   border: none;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  color: #b22222;
-  font-size: 1em;
+  width: 27px;
+  height: 27px;
+  color: #fff;
+  font-size: 1.05em;
   font-weight: 700;
   cursor: pointer;
   line-height: 1;
+  transition: background 0.13s;
+}
+.time-input-row button:hover, .time-input-row button:focus {
+  background: #b22222;
+  outline: none;
 }
 #addMedSubmitBtn, #addMedCancelBtn {
-  margin-top: 9px;
-  margin-right: 9px;
-  padding: 6px 17px;
-  border-radius: 7px;
+  margin-top: 12px;
+  margin-right: 14px;
+  padding: 8px 21px;
+  border-radius: 9px;
   border: none;
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 1.05em;
 }
 #addMedSubmitBtn {
-  background: #2a75db;
+  background: linear-gradient(90deg, #2a75db 75%, #7fbfff 100%);
   color: #fff;
+  box-shadow: 0 2px 8px #2a75db11;
+  transition: background 0.15s, box-shadow 0.15s;
 }
-#addMedSubmitBtn:hover {
-  background: #155fa0;
+#addMedSubmitBtn:hover, #addMedSubmitBtn:focus {
+  background: linear-gradient(90deg, #1753a9 60%, #58a6ff 100%);
+  outline: none;
+  box-shadow: 0 6px 16px #2a75db22;
 }
 #addMedCancelBtn {
   background: #eee;
   color: #444;
 }
-#addMedCancelBtn:hover {
+#addMedCancelBtn:hover, #addMedCancelBtn:focus {
   background: #ccc;
+  outline: none;
 }
+
+/* Calendar */
 #calendarNav {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 #calendarNav b {
-  font-size: 1.15em;
+  font-size: 1.19em;
   flex: 1;
   text-align: center;
+  letter-spacing: 0.02em;
 }
 #calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  gap: 5px;
+  margin-bottom: 12px;
 }
 #calendar > div {
-  min-height: 34px;
-  background: #f7fafd;
-  border-radius: 6px;
+  min-height: 38px;
+  background: rgba(247,250,253,0.91);
+  border-radius: 9px;
   text-align: center;
-  font-size: 1em;
-  padding: 2px 0 0 0;
+  font-size: 1.01em;
+  padding: 4px 0 0 0;
   position: relative;
   cursor: pointer;
+  transition: background 0.13s, box-shadow 0.12s;
+  box-shadow: 0 1px 2px #0001;
+  outline: none;
+}
+#calendar > div:focus {
+  box-shadow: 0 0 0 2.5px #2a75db77;
 }
 .calendar-today {
-  border: 2px solid #2a75db !important;
-  box-shadow: 0 0 4px #62a6ff;
+  border: 2.5px solid #2a75db !important;
+  box-shadow: 0 0 10px #62a6ff;
 }
 .has-dose {
-  background: #e8f0fe !important;
+  background: linear-gradient(90deg, #e8f0fe 0%, #e5f7ff 100%) !important;
+  font-weight: 600;
 }
 .dose-badge {
-  background: #e8f0fe;
+  background: #e1eeff;
   color: #3367d6;
-  border-radius: 7px;
-  padding: 1px 7px;
-  font-size: 0.88em;
-  margin-left: 2px;
+  border-radius: 9px;
+  padding: 2px 10px;
+  font-size: 0.94em;
+  margin-left: 5px;
+  font-weight: 600;
+  display: inline-block;
 }
 .dose-badge.missed {
   background: #ffeaea;
@@ -227,75 +291,93 @@ main {
   color: #208820;
 }
 #calendarDayDetail {
-  margin-top: 18px;
+  margin-top: 22px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 1px 6px #0001;
-  padding: 14px 19px;
-  font-size: 1.07em;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px #0001;
+  padding: 16px 24px;
+  font-size: 1.1em;
+  border: 1.5px solid #dbeafe;
+  min-height: 38px;
 }
+
+/* Stock Manager */
 .stock-item {
   background: #fff;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 4px #0001;
-  padding: 9px 13px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px #008cff09;
+  padding: 12px 17px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
+  border: 1.5px solid #eaf1fa;
 }
 .low-stock-warning {
-  color: #c00;
+  color: #e23c3c;
   font-weight: bold;
+  font-size: 1.1em;
 }
+
+/* Weekly Timeline */
 .weekly-card {
-  background: #fff;
-  border-radius: 12px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 17px;
   margin-bottom: 18px;
-  box-shadow: 0 1px 6px #0001;
-  padding: 0 0 12px 0;
+  box-shadow: 0 1.5px 8px #007bff0c;
+  padding: 0 0 16px 0;
+  border: 1.2px solid #e3e8ee;
 }
 .weekly-card summary {
   cursor: pointer;
-  font-size: 1.1em;
-  font-weight: 500;
-  padding: 12px 12px 10px 16px;
+  font-size: 1.13em;
+  font-weight: 700;
+  padding: 14px 12px 11px 19px;
   border-bottom: 1px solid #e3e8ee;
 }
+
+/* Chart Section */
 #chartSection {
   background: #fff;
-  border-radius: 11px;
-  box-shadow: 0 1px 6px #0001;
-  padding: 15px 25px 24px 25px;
-  margin-bottom: 18px;
-}
-#adherenceChart {
+  border-radius: 13px;
+  box-shadow: 0 1px 9px #007bff0a;
+  padding: 18px 28px 30px 28px;
   margin-bottom: 20px;
 }
+#adherenceChart {
+  margin-bottom: 22px;
+}
+
+/* History Table */
 #historySection table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 #historySection th, #historySection td {
-  border: 1px solid #bbb;
-  padding: 6px 12px;
+  border: 1.1px solid #bbc8df;
+  padding: 8px 14px;
   text-align: left;
 }
+
+/* Toast */
 .toast {
   position: fixed;
-  bottom: 24px;
+  bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
   background: #2a75db;
   color: #fff;
-  padding: 10px 28px;
-  border-radius: 7px;
-  box-shadow: 0 2px 10px #0002;
-  font-size: 1.08em;
+  padding: 12px 34px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px #007bff33;
+  font-size: 1.13em;
   z-index: 9999;
   opacity: 0.98;
+  font-weight: 600;
 }
+
+/* Sidebar-style Change History */
 #changeDatesList {
   list-style: none;
   padding: 0;
@@ -303,30 +385,34 @@ main {
 }
 #changeDatesList li {
   cursor: pointer;
-  border-radius: 5px;
-  margin-bottom: 6px;
-  padding: 6px 10px;
+  border-radius: 7px;
+  margin-bottom: 8px;
+  padding: 8px 15px;
   transition: background 0.15s;
+  font-size: 1.07em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 #changeDatesList li.active,
 #changeDatesList li:hover {
   background: #dde3f0;
+  color: #2a75db;
   font-weight: bold;
 }
 .med-change-entry {
-  margin-bottom: 36px;
-  border-radius: 14px;
+  margin-bottom: 38px;
+  border-radius: 16px;
   background: #fff;
-  box-shadow: 0 2px 8px #0002;
-  padding: 24px;
+  box-shadow: 0 2.5px 10px #007bff19;
+  padding: 26px 22px;
 }
 .med-change-title {
-  font-size: 1.15em;
-  font-weight: bold;
-  margin-bottom: 12px;
+  font-size: 1.18em;
+  font-weight: 800;
+  margin-bottom: 14px;
 }
 .diff-highlight {
-  background: #ffe;
+  background: #fffedb;
 }
 .diff-removed {
   background: #fee;
@@ -336,52 +422,85 @@ main {
 }
 .medlist-table {
   border-collapse: collapse;
-  min-width: 330px;
+  min-width: 340px;
   margin-bottom: 8px;
+  background: #fafdff;
 }
 .medlist-table th,
 .medlist-table td {
-  border: 1px solid #ccc;
-  padding: 4px 10px;
+  border: 1.1px solid #bbc8df;
+  padding: 5px 12px;
   text-align: left;
 }
 .export-btn {
-  margin: 4px 14px 10px 0;
-  padding: 3px 10px;
-  border-radius: 4px;
+  margin: 6px 18px 12px 0;
+  padding: 5px 14px;
+  border-radius: 7px;
   border: none;
-  background: #007bff;
+  background: linear-gradient(90deg, #2a75db 60%, #7fbfff 100%);
   color: #fff;
+  font-weight: 700;
   cursor: pointer;
+  font-size: 1em;
+  transition: background 0.13s, box-shadow 0.13s;
 }
 .export-btn:hover {
-  background: #005bbf;
+  background: linear-gradient(90deg, #1753a9 60%, #58a6ff 100%);
+  box-shadow: 0 4px 12px #2a75db22;
 }
+
+/* Collapsible Sections */
 .collapsible {
   cursor: pointer;
-  background: #eef3fa;
-  border-radius: 7px;
-  padding: 9px 13px;
-  margin-top: 14px;
-  margin-bottom: 5px;
-  font-size: 1.11em;
+  background: linear-gradient(90deg, #eef3fa 0%, #eaf4ff 100%);
+  border-radius: 11px;
+  padding: 11px 17px;
+  margin-top: 18px;
+  margin-bottom: 7px;
+  font-size: 1.13em;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 1.5px 7px #2a75db1a;
+  transition: background 0.13s;
+  user-select: none;
 }
-.collapsible:hover {
-  background: #dde3f0;
+.collapsible:hover, .collapsible:focus {
+  background: linear-gradient(90deg, #dde3f0 0%, #e2eafd 100%);
+  outline: none;
 }
+
+/* Reset Data Button */
 .reset-btn {
-  background: #e23c3c;
+  background: linear-gradient(90deg, #e23c3c 70%, #ff7979 100%);
   color: #fff;
   border: none;
-  padding: 7px 16px;
-  border-radius: 7px;
-  font-weight: 500;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-weight: 700;
   cursor: pointer;
-  margin-top: 6px;
+  margin-top: 8px;
+  font-size: 1.05em;
+  box-shadow: 0 2px 8px #e23c3c22;
+  transition: background 0.13s, box-shadow 0.13s;
 }
-.reset-btn:hover {
-  background: #b22222;
+.reset-btn:hover, .reset-btn:focus {
+  background: linear-gradient(90deg, #c31b1b 70%, #ffb0b0 100%);
+  outline: none;
+  box-shadow: 0 6px 20px #e23c3c33;
+}
+
+/* General Utility */
+::-webkit-scrollbar {
+  width: 11px;
+  background: #eaf2fc;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c5dbfa;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9bc7f7;
 }
