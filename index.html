@@ -16,16 +16,15 @@
 <body>
   <header class="sticky-header">
     <h1>Medication Tracker</h1>
- 
-<nav>
-  <button onclick="renderMedsGrouped()">Medications</button>
-  <button onclick="showAddMedication()">Add Medication</button>
-  <button onclick="showMedChangeHistory()">Change History</button>
-  <button onclick="showStockManager()">Stock</button>
-  <button onclick="showCalendar()">Calendar</button>
-  <button onclick="showHistory()">History</button>
-  <button onclick="location.href='user.html'">Switch User</button>
-</nav>
+    <nav>
+      <button onclick="renderMedsGrouped()">Medications</button>
+      <button onclick="showAddMedication()">Add Medication</button>
+      <button onclick="showMedChangeHistory()">Change History</button>
+      <button onclick="showStockManager()">Stock</button>
+      <button onclick="showCalendar()">Calendar</button>
+      <button onclick="showHistory()">History</button>
+      <button onclick="location.href='user.html'">Switch User</button>
+    </nav>
   </header>
   <main>
     <section id="medListSection">
@@ -63,50 +62,42 @@
     <section id="medChangeHistorySection" style="display:none;">
       <!-- JS renders full sidebar and details here -->
     </section>
-<section id="calendarSection" style="display:none;">
-  <h2 class="section-title">Calendar</h2>
-  <div id="calendarNav"></div>
-  <div id="calendar"></div>
-  <div id="calendarDayDetail"></div>
-  <div class="collapsible" onclick="toggleWeeklyTimeline()">
-    <b>Weekly Timeline</b>
-    <span id="weeklyCollapseIcon">[+]</span>
-  </div>
-  <div id="weeklyCollapsible" style="display:none;">
-    <div id="weeklyView"></div>
-  </div>
-</section>
+    <section id="calendarSection" style="display:none;">
+      <h2 class="section-title">Calendar</h2>
+      <div id="calendarNav"></div>
+      <div id="calendar"></div>
+      <div id="calendarDayDetail"></div>
+      <div class="collapsible" onclick="toggleWeeklyTimeline()">
+        <b>Weekly Timeline</b>
+        <span id="weeklyCollapseIcon">[+]</span>
+      </div>
+      <div id="weeklyCollapsible" style="display:none;">
+        <div id="weeklyView"></div>
+      </div>
+    </section>
     <section id="stockManagerSection" style="display:none;">
       <h2 class="section-title">Stock Management</h2>
       <div id="stockManager"></div>
     </section>
-<section id="historySection" style="display:none;">
-  <h2 class="section-title">Medication History</h2>
-  <div id="history"></div>
-  <button id="exportCsvBtn" onclick="exportLogs()">Export CSV</button>
-  <div class="collapsible" onclick="toggleAdherenceChart()">
-    <b>Adherence Chart</b>
-    <span id="adherenceCollapseIcon">[+]</span>
-  </div>
-  <div id="adherenceCollapsible" style="display:none;">
-    <canvas id="adherenceChart"></canvas>
-    <select id="chartRange" onchange="renderAdherenceChart()">
-      <option value="7">Last 7 days</option>
-      <option value="30">Last 30 days</option>
-      <option value="all">All time</option>
-    </select>
-  </div>
-</section>
-<section id="calendarSection" style="display:none;">
-  <h2 class="section-title">Calendar</h2>
-  <div id="calendarNav"></div>
-  <div id="calendar"></div>
-  <div id="calendarDayDetail"></div>
-  <div class="collapsible" onclick="toggleWeeklyTimeline()">
-    <b>Weekly Timeline</b>
-    <span id="weeklyCollapseIcon">[+]</span>
-  </div>
-  <div id="weeklyCollapsible" style="display:none;">
-    <div id="weeklyView"></div>
-  </div>
-</section>
+    <section id="historySection" style="display:none;">
+      <h2 class="section-title">Medication History</h2>
+      <div id="history"></div>
+      <button id="exportCsvBtn" onclick="exportLogs()">Export CSV</button>
+      <div class="collapsible" onclick="toggleAdherenceChart()">
+        <b>Adherence Chart</b>
+        <span id="adherenceCollapseIcon">[+]</span>
+      </div>
+      <div id="adherenceCollapsible" style="display:none;">
+        <canvas id="adherenceChart"></canvas>
+        <select id="chartRange" onchange="renderAdherenceChart()">
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="all">All time</option>
+        </select>
+      </div>
+    </section>
+    <div id="toast" style="display:none;" class="toast"></div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
