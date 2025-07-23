@@ -393,3 +393,18 @@ main {
 .reset-btn:hover {
   background: #b22222;
 }
+.collapsible {
+  cursor: pointer;
+  background: #eef3fa;
+  border-radius: 7px;
+  padding: 9px 13px;
+  margin-top: 14px;
+  margin-bottom: 5px;
+  font-size: 1.11em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.collapsible:hover {
+  background: #dde3f0;
+}
