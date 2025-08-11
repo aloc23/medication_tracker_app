@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", function () {
 
 // ===== Core Utility Functions =====
 
@@ -9,101 +9,11 @@ function getCurrentUser() {
     user = 'default';
     localStorage.setItem('currentUser', user);
   }
-
-// ===== IndexedDB Persistence Layer (iOS-friendly) =====
-const __DB_NAME = 'medtracker-db';
-const __DB_VERSION = 1;
-const __STORE = 'userData';
-
-function __openDb() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(__DB_NAME, __DB_VERSION);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(__STORE)) {
-        db.createObjectStore(__STORE, { keyPath: 'user' });
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-function __idbGet(user) {
-  return __openDb().then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction(__STORE, 'readonly');
-    const store = tx.objectStore(__STORE);
-    const getReq = store.get(user);
-    getReq.onsuccess = () => resolve(getReq.result || null);
-    getReq.onerror = () => reject(getReq.error);
-  }));
-}
-
-function __idbPut(record) {
-  return __openDb().then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction(__STORE, 'readwrite');
-    const store = tx.objectStore(__STORE);
-    const putReq = store.put(record);
-    putReq.onsuccess = () => resolve(true);
-    putReq.onerror = () => reject(putReq.error);
-  }));
-}
-
-function __collectSnapshot(user) {
-  const meds = JSON.parse(localStorage.getItem(user + '_medications') || '[]');
-  const logs = JSON.parse(localStorage.getItem(user + '_medLogs') || '{}');
-  const history = JSON.parse(localStorage.getItem(user + '_medChangeHistory') || '[]');
-  const lastUpdated = Date.now();
-  return { user, meds, logs, history, lastUpdated };
-}
-
-async function mirrorToIndexedDB(user) {
-  try {
-    const snap = __collectSnapshot(user);
-    await __idbPut(snap);
-  } catch (e) {
-    // fail silently; localStorage still has data
-  }
-}
-
-async function hydrateFromIndexedDBIfNeeded() {
-  const user = getCurrentUser();
-  const hasLocal = localStorage.getItem(user + '_medications') || localStorage.getItem(user + '_medLogs') || localStorage.getItem(user + '_medChangeHistory');
-  const rec = await __idbGet(user);
-  if (!rec && !hasLocal) return; // nothing to hydrate
-  if (rec) {
-    const localUpdated = Number(localStorage.getItem(user + '_lastUpdated') || '0');
-    const idbUpdated = Number(rec.lastUpdated || 0);
-    // prefer the newer snapshot
-    const useIDB = idbUpdated >= localUpdated;
-    if (useIDB) {
-      localStorage.setItem(user + '_medications', JSON.stringify(rec.meds || []));
-      localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-      mirrorToIndexedDB(getCurrentUser());
-      localStorage.setItem(user + '_medLogs', JSON.stringify(rec.logs || {}));
-      localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-      mirrorToIndexedDB(getCurrentUser());
-      localStorage.setItem(user + '_medChangeHistory', JSON.stringify(rec.history || []));
-      localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-      mirrorToIndexedDB(getCurrentUser());
-      localStorage.setItem(user + '_lastUpdated', String(idbUpdated || Date.now()));
-    } else {
-      await mirrorToIndexedDB(user);
-    }
-  } else if (!rec && hasLocal) {
-    await mirrorToIndexedDB(user);
-  }
-}
-
-// Hydrate localStorage from IndexedDB if needed (iOS-safe)
-await hydrateFromIndexedDBIfNeeded();
   return user;
 }
 
 function saveMeds(user, meds) {
   localStorage.setItem(user + '_medications', JSON.stringify(meds));
-  localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-  mirrorToIndexedDB(getCurrentUser());
 }
 function stockColor(stock) {
   if (stock > 10) return 'stock-green';
@@ -325,8 +235,6 @@ body.forEach(row => {
 });
 
       localStorage.setItem(user + '_medications', JSON.stringify(meds));
-      localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-      mirrorToIndexedDB(getCurrentUser());
       showToast(`Imported ${added} medications from spreadsheet!`);
       renderMedsGrouped();
       e.target.value = ''; // Reset file input
@@ -434,8 +342,6 @@ window.markAllTaken = function(index) {
     med.stock = Math.max(0, (med.stock || 0) - dosesMarked * parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(log));
-    localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-    mirrorToIndexedDB(getCurrentUser());
     showToast(`Marked ${dosesMarked} dose(s) as taken.`);
     renderMedsGrouped();
   } else {
@@ -459,8 +365,6 @@ window.markTaken = function(index, time) {
   med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
   saveMeds(user, meds);
   localStorage.setItem(user + '_medLogs', JSON.stringify(log));
-  localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-  mirrorToIndexedDB(getCurrentUser());
   showToast('Dose marked as taken.');
   renderMedsGrouped();
 };
@@ -669,8 +573,6 @@ function saveMedChangeSnapshot(reason = "") {
     reason: reason
   });
   localStorage.setItem(historyKey, JSON.stringify(history));
-  localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-  mirrorToIndexedDB(getCurrentUser());
 }
 function getMedChangeHistory() {
   return JSON.parse(localStorage.getItem(getMedChangeHistoryKey())) || [];
@@ -861,8 +763,6 @@ window.markLate = function(date, name, time, medIndex) {
     med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(logs));
-    localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-    mirrorToIndexedDB(getCurrentUser());
     showToast('Dose marked as taken.');
     viewWeeklyTimeline();
   } else {
@@ -1094,8 +994,6 @@ window.markCalendarTaken = function(iso, medIdx, t) {
     med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(logs));
-    localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-    mirrorToIndexedDB(getCurrentUser());
     showToast('Dose marked as taken.');
     showCalendar();
     showCalendarDayDetail(iso);
