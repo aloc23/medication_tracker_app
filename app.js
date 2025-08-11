@@ -9,6 +9,8 @@ function getCurrentUser() {
     user = 'default';
     localStorage.setItem('currentUser', user);
   }
+  return user;
+}
 
 // ===== IndexedDB Persistence Layer (iOS-friendly) =====
 const __DB_NAME = 'medtracker-db';
@@ -62,31 +64,31 @@ async function mirrorToIndexedDB(user) {
     const snap = __collectSnapshot(user);
     await __idbPut(snap);
   } catch (e) {
-    // fail silently; localStorage still has data
+    // ignore—localStorage remains primary fallback
   }
 }
 
 async function hydrateFromIndexedDBIfNeeded() {
   const user = getCurrentUser();
-  const hasLocal = localStorage.getItem(user + '_medications') || localStorage.getItem(user + '_medLogs') || localStorage.getItem(user + '_medChangeHistory');
   const rec = await __idbGet(user);
-  if (!rec && !hasLocal) return; // nothing to hydrate
-  if (rec) {
-    const localUpdated = Number(localStorage.getItem(user + '_lastUpdated') || '0');
-    const idbUpdated = Number(rec.lastUpdated || 0);
-    // prefer the newer snapshot
-    const useIDB = idbUpdated >= localUpdated;
-    if (useIDB) {
+  const hasLocal = !!(localStorage.getItem(user + '_medications') ||
+                      localStorage.getItem(user + '_medLogs') ||
+                      localStorage.getItem(user + '_medChangeHistory'));
+  if (rec && !hasLocal) {
+    localStorage.setItem(user + '_medications', JSON.stringify(rec.meds || []));
+    localStorage.setItem(user + '_medLogs', JSON.stringify(rec.logs || {}));
+  try { mirrorToIndexedDB(user); } catch (e) {}
+    localStorage.setItem(user + '_medChangeHistory', JSON.stringify(rec.history || []));
+  try { mirrorToIndexedDB(user); } catch (e) {}
+  } else if (rec && hasLocal) {
+    // Keep the larger set (simple heuristic)
+    const localMeds = JSON.parse(localStorage.getItem(user + '_medications') || '[]');
+    if ((rec.meds || []).length > localMeds.length) {
       localStorage.setItem(user + '_medications', JSON.stringify(rec.meds || []));
-      localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-      mirrorToIndexedDB(getCurrentUser());
       localStorage.setItem(user + '_medLogs', JSON.stringify(rec.logs || {}));
-      localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-      mirrorToIndexedDB(getCurrentUser());
+  try { mirrorToIndexedDB(user); } catch (e) {}
       localStorage.setItem(user + '_medChangeHistory', JSON.stringify(rec.history || []));
-      localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-      mirrorToIndexedDB(getCurrentUser());
-      localStorage.setItem(user + '_lastUpdated', String(idbUpdated || Date.now()));
+  try { mirrorToIndexedDB(user); } catch (e) {}
     } else {
       await mirrorToIndexedDB(user);
     }
@@ -95,35 +97,26 @@ async function hydrateFromIndexedDBIfNeeded() {
   }
 }
 
-// Hydrate localStorage from IndexedDB if needed (iOS-safe)
-await hydrateFromIndexedDBIfNeeded();
-  return user;
-}
-
 function saveMeds(user, meds) {
+
   localStorage.setItem(user + '_medications', JSON.stringify(meds));
-  localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-  mirrorToIndexedDB(getCurrentUser());
+
+  try { mirrorToIndexedDB(user); } catch (e) {}
 }
 function stockColor(stock) {
   if (stock > 10) return 'stock-green';
   if (stock > 3) return 'stock-orange';
   return 'stock-red';
 }
-function safeHide(id) {
-  const el = document.getElementById(id);
-  if (el && el.style) el.style.display = 'none';
-}
-
 function hideAllSections() {
-  safeHide('medListSection');
-  safeHide('stockManagerSection');
-  safeHide('calendarSection');
-  safeHide('weeklyViewSection');
-  safeHide('chartSection');
-  safeHide('historySection');
-  safeHide('addMedSection');
-  safeHide('medChangeHistorySection');
+  document.getElementById('medListSection').style.display = 'none';
+  document.getElementById('stockManagerSection').style.display = 'none';
+  document.getElementById('calendarSection').style.display = 'none';
+  document.getElementById('weeklyViewSection') && (document.getElementById('weeklyViewSection').style.display = 'none');
+  document.getElementById('chartSection') && (document.getElementById('chartSection').style.display = 'none');
+  document.getElementById('historySection').style.display = 'none';
+  document.getElementById('addMedSection').style.display = 'none';
+  document.getElementById('medChangeHistorySection').style.display = 'none';
 }
 function showToast(msg, duration = 2000) {
   let toast = document.getElementById('toast');
@@ -330,8 +323,6 @@ body.forEach(row => {
 });
 
       localStorage.setItem(user + '_medications', JSON.stringify(meds));
-      localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-      mirrorToIndexedDB(getCurrentUser());
       showToast(`Imported ${added} medications from spreadsheet!`);
       renderMedsGrouped();
       e.target.value = ''; // Reset file input
@@ -439,8 +430,7 @@ window.markAllTaken = function(index) {
     med.stock = Math.max(0, (med.stock || 0) - dosesMarked * parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(log));
-    localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-    mirrorToIndexedDB(getCurrentUser());
+  try { mirrorToIndexedDB(user); } catch (e) {}
     showToast(`Marked ${dosesMarked} dose(s) as taken.`);
     renderMedsGrouped();
   } else {
@@ -464,8 +454,7 @@ window.markTaken = function(index, time) {
   med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
   saveMeds(user, meds);
   localStorage.setItem(user + '_medLogs', JSON.stringify(log));
-  localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-  mirrorToIndexedDB(getCurrentUser());
+  try { mirrorToIndexedDB(user); } catch (e) {}
   showToast('Dose marked as taken.');
   renderMedsGrouped();
 };
@@ -674,8 +663,6 @@ function saveMedChangeSnapshot(reason = "") {
     reason: reason
   });
   localStorage.setItem(historyKey, JSON.stringify(history));
-  localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-  mirrorToIndexedDB(getCurrentUser());
 }
 function getMedChangeHistory() {
   return JSON.parse(localStorage.getItem(getMedChangeHistoryKey())) || [];
@@ -866,8 +853,7 @@ window.markLate = function(date, name, time, medIndex) {
     med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(logs));
-    localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-    mirrorToIndexedDB(getCurrentUser());
+  try { mirrorToIndexedDB(user); } catch (e) {}
     showToast('Dose marked as taken.');
     viewWeeklyTimeline();
   } else {
@@ -1099,8 +1085,7 @@ window.markCalendarTaken = function(iso, medIdx, t) {
     med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
     saveMeds(user, meds);
     localStorage.setItem(user + '_medLogs', JSON.stringify(logs));
-    localStorage.setItem(getCurrentUser() + '_lastUpdated', String(Date.now()));
-    mirrorToIndexedDB(getCurrentUser());
+  try { mirrorToIndexedDB(user); } catch (e) {}
     showToast('Dose marked as taken.');
     showCalendar();
     showCalendarDayDetail(iso);
@@ -1216,18 +1201,3 @@ if (weeklyIcon) weeklyIcon.textContent = '[+]';
 renderMedsGrouped();
 
 });
-
-
-// Extra safety: ensure nav taps are bound
-(function ensureNavBindings() {
-  const bind = (id, fn) => {
-    const btn = document.querySelector(`nav button[onclick*="${id}"]`);
-    if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); window[fn] && window[fn](); }, { passive: true });
-  };
-  bind('renderMedsGrouped', 'renderMedsGrouped');
-  bind('showAddMedication', 'showAddMedication');
-  bind('showMedChangeHistory', 'showMedChangeHistory');
-  bind('showStockManager', 'showStockManager');
-  bind('showCalendar', 'showCalendar');
-  bind('showHistory', 'showHistory');
-})();
