@@ -1201,3 +1201,83 @@ if (weeklyIcon) weeklyIcon.textContent = '[+]';
 renderMedsGrouped();
 
 });
+
+
+// ===== Backup / Restore (iOS-safe) =====
+function collectUserData(user) {
+  try {
+    const meds = JSON.parse(localStorage.getItem(user + '_medications') || '[]');
+    const logs = JSON.parse(localStorage.getItem(user + '_medLogs') || '{}');
+    const history = JSON.parse(localStorage.getItem(user + '_medChangeHistory') || '[]');
+    return { version: 1, exportedAt: new Date().toISOString(), user, meds, logs, history };
+  } catch (e) {
+    return { version: 1, exportedAt: new Date().toISOString(), user, meds: [], logs: {}, history: [] };
+  }
+}
+
+function restoreUserData(user, data) {
+  if (!data || !Array.isArray(data.meds) || typeof data.logs !== 'object') {
+    throw new Error('Invalid backup format');
+  }
+  localStorage.setItem(user + '_medications', JSON.stringify(data.meds));
+  localStorage.setItem(user + '_medLogs', JSON.stringify(data.logs));
+  localStorage.setItem(user + '_medChangeHistory', JSON.stringify(data.history || []));
+  // Also mirror into IndexedDB if present
+  try {
+    if (typeof saveUserData === 'function') {
+      saveUserData(user, { meds: data.meds, logs: data.logs, history: data.history || [] });
+    }
+  } catch (_) {}
+}
+
+async function exportBackupIOS(user) {
+  const payload = collectUserData(user);
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+
+  // iOS share sheet if available
+  try {
+    const file = new File([blob], 'medication_backup.json', { type: 'application/json' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Medication Backup' });
+      return;
+    }
+  } catch (_) {}
+
+  // Fallback: download
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'medication_backup.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+function wireBackupUI() {
+  const exportBtn = document.getElementById('btnExportBackup');
+  const importBtn = document.getElementById('btnImportBackup');
+  const fileInput = document.getElementById('fileImport');
+  if (!exportBtn || !importBtn || !fileInput) return;
+  const user = getCurrentUser ? getCurrentUser() : 'default';
+
+  exportBtn.addEventListener('click', () => exportBackupIOS(user));
+  importBtn.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      restoreUserData(user, data);
+      if (typeof renderMedsGrouped === 'function') renderMedsGrouped();
+      if (typeof showToast === 'function') showToast('Backup restored');
+      else alert('Backup restored');
+    } catch (err) {
+      alert('Import failed: ' + (err && err.message ? err.message : err));
+    } finally {
+      e.target.value = '';
+    }
+  });
+}
+
+
+try { document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', wireBackupUI) : wireBackupUI(); } catch(_) {}
