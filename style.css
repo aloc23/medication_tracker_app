@@ -504,3 +504,29 @@ main {
 ::-webkit-scrollbar-thumb:hover {
   background: #9bc7f7;
 }
+
+
+/* --- Fix: ensure header/nav always clickable and above sections --- */
+header.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+header.sticky-header nav {
+  pointer-events: auto;
+}
+
+main, section {
+  position: relative;
+  z-index: 0;
+}
+
+body {
+  padding-top: env(safe-area-inset-top);
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}

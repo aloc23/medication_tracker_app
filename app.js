@@ -110,15 +110,20 @@ function stockColor(stock) {
   if (stock > 3) return 'stock-orange';
   return 'stock-red';
 }
+function safeHide(id) {
+  const el = document.getElementById(id);
+  if (el && el.style) el.style.display = 'none';
+}
+
 function hideAllSections() {
-  document.getElementById('medListSection').style.display = 'none';
-  document.getElementById('stockManagerSection').style.display = 'none';
-  document.getElementById('calendarSection').style.display = 'none';
-  document.getElementById('weeklyViewSection') && (document.getElementById('weeklyViewSection').style.display = 'none');
-  document.getElementById('chartSection') && (document.getElementById('chartSection').style.display = 'none');
-  document.getElementById('historySection').style.display = 'none';
-  document.getElementById('addMedSection').style.display = 'none';
-  document.getElementById('medChangeHistorySection').style.display = 'none';
+  safeHide('medListSection');
+  safeHide('stockManagerSection');
+  safeHide('calendarSection');
+  safeHide('weeklyViewSection');
+  safeHide('chartSection');
+  safeHide('historySection');
+  safeHide('addMedSection');
+  safeHide('medChangeHistorySection');
 }
 function showToast(msg, duration = 2000) {
   let toast = document.getElementById('toast');
@@ -1211,3 +1216,18 @@ if (weeklyIcon) weeklyIcon.textContent = '[+]';
 renderMedsGrouped();
 
 });
+
+
+// Extra safety: ensure nav taps are bound
+(function ensureNavBindings() {
+  const bind = (id, fn) => {
+    const btn = document.querySelector(`nav button[onclick*="${id}"]`);
+    if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); window[fn] && window[fn](); }, { passive: true });
+  };
+  bind('renderMedsGrouped', 'renderMedsGrouped');
+  bind('showAddMedication', 'showAddMedication');
+  bind('showMedChangeHistory', 'showMedChangeHistory');
+  bind('showStockManager', 'showStockManager');
+  bind('showCalendar', 'showCalendar');
+  bind('showHistory', 'showHistory');
+})();
