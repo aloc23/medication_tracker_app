@@ -119,23 +119,24 @@ main {
   border-radius: 16px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  border: 1.5px solid #e3fbe3;
-  background: linear-gradient(90deg, #f4fff4 0%, #e3fae3 100%);
+  border: 1.5px solid rgba(38, 166, 154, 0.3);
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  color: #e1e8ed;
 }
 .stock-green {
-  background: linear-gradient(90deg, #f4fff4 0%, #e3fae3 100%);
-  color: #208820;
-  border-color: #b2e8b2;
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #ffffff;
+  border-color: rgba(38, 166, 154, 0.6);
 }
 .stock-orange {
-  background: linear-gradient(90deg, #fff7e7 0%, #fff3e0 100%);
-  color: #b26a00;
-  border-color: #ffd699;
+  background: linear-gradient(135deg, #ff8a50 0%, #ffb74d 100%);
+  color: #ffffff;
+  border-color: rgba(255, 138, 80, 0.6);
 }
 .stock-red {
-  background: linear-gradient(90deg, #fff4f4 0%, #ffeaea 100%);
-  color: #b22c2c;
-  border-color: #ff9a9a;
+  background: linear-gradient(135deg, #e53935 0%, #f44336 100%);
+  color: #ffffff;
+  border-color: rgba(229, 57, 53, 0.6);
 }
 .mark-all-btn {
   margin: 14px 10px 0 0;
@@ -327,31 +328,35 @@ main {
   font-weight: 600;
 }
 .dose-badge {
-  background: #e1eeff;
-  color: #3367d6;
-  border-radius: 9px;
-  padding: 2px 10px;
+  background: rgba(38, 166, 154, 0.2);
+  color: #00bcd4;
+  border-radius: 12px;
+  padding: 4px 12px;
   font-size: 0.94em;
   margin-left: 5px;
   font-weight: 600;
   display: inline-block;
+  border: 1px solid rgba(38, 166, 154, 0.3);
 }
 .dose-badge.missed {
-  background: #ffeaea;
-  color: #b22c2c;
+  background: rgba(229, 57, 53, 0.2);
+  color: #f44336;
+  border-color: rgba(229, 57, 53, 0.3);
 }
 .dose-badge.upcoming {
-  background: #e3fbe3;
-  color: #208820;
+  background: rgba(38, 166, 154, 0.2);
+  color: #26a69a;
+  border-color: rgba(38, 166, 154, 0.3);
 }
 #calendarDayDetail {
   margin-top: 22px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 10px #0001;
-  padding: 16px 24px;
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  color: #e1e8ed;
+  border: 1px solid rgba(38, 166, 154, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 4px 15px rgba(38, 166, 154, 0.1);
+  padding: 20px 28px;
   font-size: 1.1em;
-  border: 1.5px solid #dbeafe;
   min-height: 38px;
 }
 
@@ -452,31 +457,39 @@ main {
 }
 #changeDatesList li {
   cursor: pointer;
-  border-radius: 7px;
+  border-radius: 12px;
   margin-bottom: 8px;
-  padding: 8px 15px;
-  transition: background 0.15s;
+  padding: 12px 18px;
+  transition: all 0.3s ease;
   font-size: 1.07em;
   font-weight: 600;
   letter-spacing: 0.01em;
+  background: rgba(55, 71, 79, 0.6);
+  color: #e1e8ed;
+  border: 1px solid rgba(38, 166, 154, 0.2);
 }
 #changeDatesList li.active,
 #changeDatesList li:hover {
-  background: #dde3f0;
-  color: #2a75db;
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #ffffff;
   font-weight: bold;
+  box-shadow: 0 4px 15px rgba(38, 166, 154, 0.3);
+  transform: translateY(-1px);
 }
 .med-change-entry {
   margin-bottom: 38px;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 2.5px 10px #007bff19;
-  padding: 26px 22px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  color: #e1e8ed;
+  border: 1px solid rgba(38, 166, 154, 0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 4px 15px rgba(38, 166, 154, 0.1);
+  padding: 30px 26px;
 }
 .med-change-title {
   font-size: 1.18em;
   font-weight: 800;
   margin-bottom: 14px;
+  color: #00bcd4;
 }
 .diff-highlight {
   background: #fffedb;
@@ -491,13 +504,21 @@ main {
   border-collapse: collapse;
   min-width: 340px;
   margin-bottom: 8px;
-  background: #fafdff;
+  background: rgba(55, 71, 79, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
 }
 .medlist-table th,
 .medlist-table td {
-  border: 1.1px solid #bbc8df;
-  padding: 5px 12px;
+  border: 1px solid rgba(38, 166, 154, 0.2);
+  padding: 8px 16px;
   text-align: left;
+  color: #e1e8ed;
+}
+.medlist-table th {
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #ffffff;
+  font-weight: 700;
 }
 .export-btn {
   margin: 6px 18px 12px 0;
