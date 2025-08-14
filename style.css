@@ -1,23 +1,23 @@
 body {
-  background: linear-gradient(135deg, #f4faff 0%, #ecf2fd 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   margin: 0;
-  color: #23233a;
+  color: #e1e8ed;
   min-height: 100vh;
 }
 
 /* Header and Navigation */
 header.sticky-header {
-  background: rgba(42,117,219,0.94);
-  color: #fff;
+  background: linear-gradient(135deg, #263238 0%, #37474f 100%);
+  color: #e1e8ed;
   padding: 0 0 10px 0;
   margin-bottom: 24px;
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 4px 24px #2a75db18;
-  backdrop-filter: blur(4px);
-  border-bottom: 1.5px solid #e3efff71;
+  box-shadow: 0 8px 32px rgba(0, 188, 212, 0.15);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(38, 166, 154, 0.3);
 }
 header.sticky-header h1 {
   margin: 0 0 12px 0;
@@ -25,7 +25,11 @@ header.sticky-header h1 {
   letter-spacing: 0.04em;
   font-size: 2.35em;
   padding: 22px 0 0 24px;
-  text-shadow: 0 2px 8px #12428633;
+  text-shadow: 0 2px 12px rgba(0, 188, 212, 0.4);
+  background: linear-gradient(45deg, #00bcd4, #26a69a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 header.sticky-header nav {
   display: flex;
@@ -34,20 +38,27 @@ header.sticky-header nav {
   padding: 0 0 12px 20px;
 }
 header.sticky-header nav button {
-  background: linear-gradient(90deg, #fff 40%, #eaf1fa 100%);
-  color: #2a75db;
-  border: none;
-  border-radius: 12px;
-  padding: 9px 22px;
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  color: #e1e8ed;
+  border: 1px solid rgba(38, 166, 154, 0.3);
+  border-radius: 16px;
+  padding: 12px 24px;
   font-size: 1.05em;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.18s, box-shadow 0.18s, color 0.12s;
-  box-shadow: 0 2.5px 8px #85bfff19;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   outline: none;
 }
 header.sticky-header nav button:hover, header.sticky-header nav button:focus {
-  background: linear-gradient(90deg, #dbeafe 40%, #b6dbff 100%);
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(38, 166, 154, 0.4);
+  transform: translateY(-2px);
+}
+header.sticky-header nav button i {
+  margin-right: 8px;
+}
   color: #114fa6;
   box-shadow: 0 6px 18px #2a75db30;
 }
@@ -61,22 +72,28 @@ main {
 
 /* Section Titles */
 .section-title {
-  color: #2050aa;
+  color: #00bcd4;
   margin-top: 0;
   margin-bottom: 18px;
-  font-size: 1.6em;
+  font-size: 1.8em;
   font-weight: 800;
   letter-spacing: 0.01em;
+  text-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
+}
+.section-title i {
+  margin-right: 12px;
+  color: #26a69a;
 }
 
 /* Medication Cards */
 .med-card {
-  background: rgba(255,255,255,0.92);
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
   border-radius: 20px;
   margin-bottom: 22px;
-  box-shadow: 0 4px 22px #007bff07, 0 1.5px 4px #0001;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 4px 15px rgba(38, 166, 154, 0.1);
   padding: 0 0 16px 0;
-  border: 1.5px solid #d1e2fa;
+  border: 1px solid rgba(38, 166, 154, 0.2);
+  color: #e1e8ed;
   transition: box-shadow 0.18s, transform 0.14s;
 }
 .med-card:hover {
@@ -123,19 +140,20 @@ main {
 .mark-all-btn {
   margin: 14px 10px 0 0;
   padding: 6px 16px;
-  background: linear-gradient(90deg, #2a75db 65%, #7fbfff 100%);
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
   color: #fff;
   border: none;
-  border-radius: 9px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 8px #2a75db11;
+  box-shadow: 0 4px 15px rgba(38, 166, 154, 0.3);
   font-size: 1em;
-  transition: background 0.15s, box-shadow 0.15s;
+  transition: all 0.3s ease;
 }
 .mark-all-btn:hover, .mark-all-btn:focus {
-  background: linear-gradient(90deg, #1753a9 60%, #58a6ff 100%);
-  box-shadow: 0 6px 16px #2a75db22;
+  background: linear-gradient(135deg, #00acc1 0%, #00bcd4 100%);
+  box-shadow: 0 6px 20px rgba(38, 166, 154, 0.4);
+  transform: translateY(-2px);
   outline: none;
 }
 
@@ -146,35 +164,44 @@ main {
 #addMedForm input[type="date"],
 #addMedForm textarea {
   font-size: 1.08em;
-  padding: 9px 13px;
+  padding: 12px 16px;
   margin-bottom: 10px;
-  border-radius: 10px;
-  border: 1.5px solid #b1c2df;
+  border-radius: 12px;
+  border: 1.5px solid rgba(38, 166, 154, 0.3);
   width: 100%;
   box-sizing: border-box;
-  background: #f7fafd;
-  transition: border-color 0.14s;
+  background: rgba(55, 71, 79, 0.8);
+  color: #e1e8ed;
+  transition: all 0.3s ease;
 }
 #addMedForm input:focus, #addMedForm textarea:focus {
-  border-color: #2a75db;
+  border-color: #26a69a;
+  background: rgba(55, 71, 79, 1);
+  box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.1);
   outline: 0;
+}
+#addMedForm input::placeholder, #addMedForm textarea::placeholder {
+  color: #90a4ae;
 }
 #addMedForm textarea {
   resize: vertical;
 }
 #addTimeBtn {
   margin-bottom: 12px;
-  background: linear-gradient(90deg, #d7e9ff 0%, #cfecff 100%);
-  color: #2a75db;
-  border: none;
-  border-radius: 9px;
-  padding: 7px 15px;
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  color: #e1e8ed;
+  border: 1px solid rgba(38, 166, 154, 0.3);
+  border-radius: 12px;
+  padding: 10px 18px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.3s ease;
 }
 #addTimeBtn:hover, #addTimeBtn:focus {
-  background: linear-gradient(90deg, #b6d2ff 0%, #eaf3fd 100%);
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(38, 166, 154, 0.3);
+  transform: translateY(-1px);
   outline: none;
 }
 .time-input-row {
@@ -203,29 +230,33 @@ main {
 #addMedSubmitBtn, #addMedCancelBtn {
   margin-top: 12px;
   margin-right: 14px;
-  padding: 8px 21px;
-  border-radius: 9px;
+  padding: 12px 24px;
+  border-radius: 12px;
   border: none;
   font-weight: 700;
   font-size: 1.05em;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 #addMedSubmitBtn {
-  background: linear-gradient(90deg, #2a75db 75%, #7fbfff 100%);
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
   color: #fff;
-  box-shadow: 0 2px 8px #2a75db11;
-  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 15px rgba(38, 166, 154, 0.3);
 }
 #addMedSubmitBtn:hover, #addMedSubmitBtn:focus {
-  background: linear-gradient(90deg, #1753a9 60%, #58a6ff 100%);
+  background: linear-gradient(135deg, #00acc1 0%, #00bcd4 100%);
+  box-shadow: 0 6px 20px rgba(38, 166, 154, 0.4);
+  transform: translateY(-2px);
   outline: none;
-  box-shadow: 0 6px 16px #2a75db22;
 }
 #addMedCancelBtn {
-  background: #eee;
-  color: #444;
+  background: rgba(120, 144, 156, 0.8);
+  color: #e1e8ed;
+  border: 1px solid rgba(120, 144, 156, 0.3);
 }
 #addMedCancelBtn:hover, #addMedCancelBtn:focus {
-  background: #ccc;
+  background: rgba(120, 144, 156, 1);
+  transform: translateY(-1px);
   outline: none;
 }
 
@@ -236,40 +267,63 @@ main {
   align-items: center;
   gap: 16px;
 }
+#calendarNav button {
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(38, 166, 154, 0.2);
+}
+#calendarNav button:hover {
+  background: linear-gradient(135deg, #00acc1 0%, #00bcd4 100%);
+  box-shadow: 0 6px 20px rgba(38, 166, 154, 0.4);
+  transform: translateY(-2px);
+}
 #calendarNav b {
   font-size: 1.19em;
   flex: 1;
   text-align: center;
   letter-spacing: 0.02em;
+  color: #e1e8ed;
 }
 #calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+  gap: 8px;
   margin-bottom: 12px;
 }
 #calendar > div {
-  min-height: 38px;
-  background: rgba(247,250,253,0.91);
-  border-radius: 9px;
+  min-height: 42px;
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  color: #e1e8ed;
+  border: 1px solid rgba(38, 166, 154, 0.2);
+  border-radius: 12px;
   text-align: center;
   font-size: 1.01em;
-  padding: 4px 0 0 0;
+  padding: 8px 0 0 0;
   position: relative;
   cursor: pointer;
-  transition: background 0.13s, box-shadow 0.12s;
-  box-shadow: 0 1px 2px #0001;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   outline: none;
 }
-#calendar > div:focus {
-  box-shadow: 0 0 0 2.5px #2a75db77;
+#calendar > div:hover, #calendar > div:focus {
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(38, 166, 154, 0.3);
+  transform: translateY(-2px);
 }
 .calendar-today {
-  border: 2.5px solid #2a75db !important;
-  box-shadow: 0 0 10px #62a6ff;
+  border: 2.5px solid #00bcd4 !important;
+  box-shadow: 0 0 15px rgba(0, 188, 212, 0.5);
 }
 .has-dose {
-  background: linear-gradient(90deg, #e8f0fe 0%, #e5f7ff 100%) !important;
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%) !important;
+  color: #ffffff !important;
   font-weight: 600;
 }
 .dose-badge {
@@ -338,10 +392,12 @@ main {
 
 /* Chart Section */
 #chartSection {
-  background: #fff;
-  border-radius: 13px;
-  box-shadow: 0 1px 9px #007bff0a;
-  padding: 18px 28px 30px 28px;
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  color: #e1e8ed;
+  border: 1px solid rgba(38, 166, 154, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 4px 15px rgba(38, 166, 154, 0.1);
+  padding: 24px 32px 36px 32px;
   margin-bottom: 20px;
 }
 #adherenceChart {
@@ -353,11 +409,20 @@ main {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 18px;
+  background: rgba(55, 71, 79, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
 }
 #historySection th, #historySection td {
-  border: 1.1px solid #bbc8df;
-  padding: 8px 14px;
+  border: 1px solid rgba(38, 166, 154, 0.2);
+  padding: 12px 16px;
   text-align: left;
+  color: #e1e8ed;
+}
+#historySection th {
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #ffffff;
+  font-weight: 700;
 }
 
 /* Toast */
@@ -366,15 +431,17 @@ main {
   bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
-  background: #2a75db;
-  color: #fff;
-  padding: 12px 34px;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px #007bff33;
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  color: #e1e8ed;
+  padding: 16px 40px;
+  border-radius: 16px;
+  border: 1px solid rgba(38, 166, 154, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 4px 15px rgba(38, 166, 154, 0.1);
   font-size: 1.13em;
   z-index: 9999;
   opacity: 0.98;
   font-weight: 600;
+  backdrop-filter: blur(10px);
 }
 
 /* Sidebar-style Change History */
@@ -434,27 +501,31 @@ main {
 }
 .export-btn {
   margin: 6px 18px 12px 0;
-  padding: 5px 14px;
-  border-radius: 7px;
+  padding: 8px 16px;
+  border-radius: 10px;
   border: none;
-  background: linear-gradient(90deg, #2a75db 60%, #7fbfff 100%);
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
   color: #fff;
   font-weight: 700;
   cursor: pointer;
   font-size: 1em;
-  transition: background 0.13s, box-shadow 0.13s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(38, 166, 154, 0.2);
 }
 .export-btn:hover {
-  background: linear-gradient(90deg, #1753a9 60%, #58a6ff 100%);
-  box-shadow: 0 4px 12px #2a75db22;
+  background: linear-gradient(135deg, #00acc1 0%, #00bcd4 100%);
+  box-shadow: 0 6px 20px rgba(38, 166, 154, 0.4);
+  transform: translateY(-2px);
 }
 
 /* Collapsible Sections */
 .collapsible {
   cursor: pointer;
-  background: linear-gradient(90deg, #eef3fa 0%, #eaf4ff 100%);
-  border-radius: 11px;
-  padding: 11px 17px;
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  color: #e1e8ed;
+  border: 1px solid rgba(38, 166, 154, 0.2);
+  border-radius: 15px;
+  padding: 15px 20px;
   margin-top: 18px;
   margin-bottom: 7px;
   font-size: 1.13em;
@@ -462,47 +533,51 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 1.5px 7px #2a75db1a;
-  transition: background 0.13s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
   user-select: none;
 }
 .collapsible:hover, .collapsible:focus {
-  background: linear-gradient(90deg, #dde3f0 0%, #e2eafd 100%);
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(38, 166, 154, 0.3);
+  transform: translateY(-2px);
   outline: none;
 }
 
 /* Reset Data Button */
 .reset-btn {
-  background: linear-gradient(90deg, #e23c3c 70%, #ff7979 100%);
+  background: linear-gradient(135deg, #e53935 0%, #f44336 100%);
   color: #fff;
   border: none;
-  padding: 9px 18px;
-  border-radius: 10px;
+  padding: 12px 20px;
+  border-radius: 12px;
   font-weight: 700;
   cursor: pointer;
   margin-top: 8px;
   font-size: 1.05em;
-  box-shadow: 0 2px 8px #e23c3c22;
-  transition: background 0.13s, box-shadow 0.13s;
+  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3);
+  transition: all 0.3s ease;
 }
 .reset-btn:hover, .reset-btn:focus {
-  background: linear-gradient(90deg, #c31b1b 70%, #ffb0b0 100%);
+  background: linear-gradient(135deg, #c62828 0%, #e53935 100%);
+  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
+  transform: translateY(-2px);
   outline: none;
-  box-shadow: 0 6px 20px #e23c3c33;
 }
 
 /* General Utility */
 ::-webkit-scrollbar {
   width: 11px;
-  background: #eaf2fc;
+  background: rgba(55, 71, 79, 0.3);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c5dbfa;
+  background: rgba(38, 166, 154, 0.6);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #9bc7f7;
+  background: rgba(38, 166, 154, 0.8);
 }
 
 
@@ -529,4 +604,38 @@ body {
 
 button {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Backup Controls */
+#backupControls {
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
+  border: 1px solid rgba(38, 166, 154, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 500px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+#backupControls button {
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin: 0 8px 8px 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(38, 166, 154, 0.2);
+}
+
+#backupControls button:hover {
+  background: linear-gradient(135deg, #00acc1 0%, #00bcd4 100%);
+  box-shadow: 0 6px 20px rgba(38, 166, 154, 0.4);
+  transform: translateY(-2px);
+}
+
+#backupControls small {
+  color: #90a4ae;
 }
