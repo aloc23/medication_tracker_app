@@ -103,6 +103,12 @@ function saveMeds(user, meds) {
 
   try { mirrorToIndexedDB(user); } catch (e) {}
 }
+
+function saveLogs(user, logs) {
+  localStorage.setItem(user + '_medLogs', JSON.stringify(logs));
+  try { mirrorToIndexedDB(user); } catch (e) {}
+}
+
 function stockColor(stock) {
   if (stock > 10) return 'stock-green';
   if (stock > 3) return 'stock-orange';
@@ -429,8 +435,7 @@ window.markAllTaken = function(index) {
   if (dosesMarked > 0) {
     med.stock = Math.max(0, (med.stock || 0) - dosesMarked * parseInt(med.dosage));
     saveMeds(user, meds);
-    localStorage.setItem(user + '_medLogs', JSON.stringify(log));
-  try { mirrorToIndexedDB(user); } catch (e) {}
+    saveLogs(user, log);
     showToast(`Marked ${dosesMarked} dose(s) as taken.`);
     renderMedsGrouped();
   } else {
@@ -453,8 +458,7 @@ window.markTaken = function(index, time) {
   log[today].push({ ...med, time, doseKey });
   med.stock = Math.max(0, (med.stock || 0) - parseInt(med.dosage));
   saveMeds(user, meds);
-  localStorage.setItem(user + '_medLogs', JSON.stringify(log));
-  try { mirrorToIndexedDB(user); } catch (e) {}
+  saveLogs(user, log);
   showToast('Dose marked as taken.');
   renderMedsGrouped();
 };
@@ -1204,8 +1208,16 @@ renderMedsGrouped();
 
 
 // ===== Backup / Restore (iOS-safe) =====
-function collectUserData(user) {
+async function collectUserData(user) {
   try {
+    // First try to sync latest data from IndexedDB if available
+    try {
+      await hydrateFromIndexedDBIfNeeded();
+    } catch (_) {
+      // Continue with localStorage if IndexedDB fails
+    }
+    
+    // Collect current data from localStorage (now synced with IndexedDB)
     const meds = JSON.parse(localStorage.getItem(user + '_medications') || '[]');
     const logs = JSON.parse(localStorage.getItem(user + '_medLogs') || '{}');
     const history = JSON.parse(localStorage.getItem(user + '_medChangeHistory') || '[]');
@@ -1222,16 +1234,17 @@ function restoreUserData(user, data) {
   localStorage.setItem(user + '_medications', JSON.stringify(data.meds));
   localStorage.setItem(user + '_medLogs', JSON.stringify(data.logs));
   localStorage.setItem(user + '_medChangeHistory', JSON.stringify(data.history || []));
-  // Also mirror into IndexedDB if present
+  
+  // Also mirror into IndexedDB for robust persistence
   try {
-    if (typeof saveUserData === 'function') {
-      saveUserData(user, { meds: data.meds, logs: data.logs, history: data.history || [] });
-    }
-  } catch (_) {}
+    mirrorToIndexedDB(user);
+  } catch (_) {
+    // IndexedDB failed, but localStorage backup is still restored
+  }
 }
 
 async function exportBackupIOS(user) {
-  const payload = collectUserData(user);
+  const payload = await collectUserData(user);
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
 
   // iOS share sheet if available
@@ -1239,6 +1252,7 @@ async function exportBackupIOS(user) {
     const file = new File([blob], 'medication_backup.json', { type: 'application/json' });
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({ files: [file], title: 'Medication Backup' });
+      if (typeof showToast === 'function') showToast('Backup shared successfully');
       return;
     }
   } catch (_) {}
@@ -1249,6 +1263,8 @@ async function exportBackupIOS(user) {
   a.download = 'medication_backup.json';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  
+  if (typeof showToast === 'function') showToast('Backup downloaded to device');
 }
 
 function wireBackupUI() {
@@ -1265,14 +1281,17 @@ function wireBackupUI() {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     try {
+      if (typeof showToast === 'function') showToast('Restoring backup...');
       const text = await file.text();
       const data = JSON.parse(text);
       restoreUserData(user, data);
       if (typeof renderMedsGrouped === 'function') renderMedsGrouped();
-      if (typeof showToast === 'function') showToast('Backup restored');
-      else alert('Backup restored');
+      if (typeof showToast === 'function') showToast('✅ Backup restored successfully! All your data has been recovered.');
+      else alert('Backup restored successfully!');
     } catch (err) {
-      alert('Import failed: ' + (err && err.message ? err.message : err));
+      const errorMsg = 'Import failed: ' + (err && err.message ? err.message : err) + '. Please ensure you selected a valid backup file.';
+      if (typeof showToast === 'function') showToast(errorMsg);
+      else alert(errorMsg);
     } finally {
       e.target.value = '';
     }
