@@ -41,7 +41,7 @@ header.sticky-header nav {
 }
 header.sticky-header nav button {
   background: #37474f;
-  color: #e1e8ed;
+  color: #ffffff; /* Improved contrast from #e1e8ed */
   border: none;
   border-radius: 8px;
   padding: 12px 20px;
@@ -71,9 +71,9 @@ main {
   padding: 0 24px;
 }
 
-/* Section Titles */
+/* Section Titles - Improved contrast */
 .section-title {
-  color: #00bcd4;
+  color: #26c6da; /* Brighter cyan for better contrast */
   margin-top: 0;
   margin-bottom: 24px;
   font-size: 1.75rem;
@@ -82,7 +82,7 @@ main {
 }
 .section-title i {
   margin-right: 12px;
-  color: #26a69a;
+  color: #4dd0e1; /* Brighter teal for better contrast */
 }
 
 /* Medication Cards */
@@ -100,6 +100,7 @@ main {
   box-shadow: 0 6px 20px rgba(38, 166, 154, 0.15);
   transform: translateY(-1px);
 }
+/* Improved color contrast for better accessibility */
 .med-card summary {
   cursor: pointer;
   font-size: 1.18em;
@@ -111,7 +112,9 @@ main {
   border-bottom: 1px solid #e3e8ee;
   user-select: none;
   outline: none;
+  color: #ffffff; /* Improved contrast */
 }
+
 .stock-badge {
   font-size: 0.875rem;
   margin-left: auto;
@@ -121,18 +124,21 @@ main {
   letter-spacing: -0.01em;
   border: none;
   background: #455a64;
-  color: #e1e8ed;
+  color: #ffffff; /* Improved contrast */
 }
+
 .stock-green {
-  background: #26a69a;
+  background: #2e7d32; /* Darker green for better contrast */
   color: #ffffff;
 }
+
 .stock-orange {
-  background: #ff8a50;
+  background: #ef6c00; /* Darker orange for better contrast */
   color: #ffffff;
 }
+
 .stock-red {
-  background: #e53935;
+  background: #c62828; /* Darker red for better contrast */
   color: #ffffff;
 }
 .mark-all-btn {
@@ -756,6 +762,25 @@ button {
   margin-bottom: 0;
 }
 
+.backup-status {
+  background: rgba(38, 166, 154, 0.1);
+  border-left: 4px solid #26a69a;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.backup-status p {
+  margin: 0;
+  color: #e1e8ed;
+}
+
+.backup-status i {
+  color: #26a69a;
+  margin-right: 8px;
+}
+
 /* Mobile Responsive Improvements */
 @media (max-width: 768px) {
   /* Improved header spacing and navigation */
@@ -766,15 +791,33 @@ button {
   
   header.sticky-header nav {
     padding: 0 0 12px 12px;
-    gap: 8px;
+    gap: 6px;
   }
   
   header.sticky-header nav button {
-    padding: 16px 12px;
-    font-size: 0.95em;
+    padding: 12px 8px;
+    font-size: 0.85em;
     min-height: 44px;
     flex: 1;
     text-align: center;
+    border-radius: 6px;
+  }
+  
+  /* Compact navigation when scrolling */
+  header.sticky-header.scrolled nav {
+    padding: 0 0 8px 8px;
+    gap: 4px;
+  }
+  
+  header.sticky-header.scrolled nav button {
+    padding: 8px 6px;
+    font-size: 0.8em;
+    min-height: 36px;
+  }
+  
+  header.sticky-header.scrolled h1 {
+    font-size: 1.6em;
+    padding: 12px 0 0 12px;
   }
   
   /* Better main content spacing */
@@ -831,13 +874,31 @@ button {
 /* Extra small mobile devices */
 @media (max-width: 480px) {
   header.sticky-header nav {
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: space-between;
   }
   
   header.sticky-header nav button {
-    width: 100%;
+    width: calc(50% - 2px);
     margin: 0;
+    font-size: 0.75em;
+    padding: 10px 4px;
+    min-height: 40px;
+  }
+  
+  /* When scrolled, make navigation even more compact */
+  header.sticky-header.scrolled nav button {
+    width: calc(33.33% - 3px);
+    font-size: 0.7em;
+    padding: 6px 2px;
+    min-height: 32px;
+  }
+  
+  /* Hide less essential buttons when scrolled on very small screens */
+  header.sticky-header.scrolled nav button:nth-child(n+6) {
+    display: none;
   }
   
   #calendarNav {
