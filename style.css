@@ -270,11 +270,11 @@ body {
 }
 
 .content-section {
-  display: none;
+  display: none !important;
 }
 
 .content-section.active {
-  display: block;
+  display: block !important;
 }
 
 .section-header {
