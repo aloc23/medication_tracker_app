@@ -1,5 +1,3 @@
-document.addEventListener("DOMContentLoaded", async function () {
-
 // ===== Core Utility Functions =====
 
 function getCurrentUser() {
@@ -11,6 +9,20 @@ function getCurrentUser() {
   }
   return user;
 }
+
+// Console logging for debugging backup issues
+function debugLog(message, data = null) {
+  if (console && console.log) {
+    const timestamp = new Date().toISOString();
+    if (data) {
+      console.log(`[MedTracker Debug ${timestamp}] ${message}`, data);
+    } else {
+      console.log(`[MedTracker Debug ${timestamp}] ${message}`);
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
 
 // ===== IndexedDB Persistence Layer (iOS-friendly) =====
 const __DB_NAME = 'medtracker-db';
@@ -1244,52 +1256,175 @@ function restoreUserData(user, data) {
 }
 
 async function exportBackupIOS(user) {
-  const payload = await collectUserData(user);
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-
-  // iOS share sheet if available
-  try {
-    const file = new File([blob], 'medication_backup.json', { type: 'application/json' });
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'Medication Backup' });
-      if (typeof showToast === 'function') showToast('Backup shared successfully');
-      return;
-    }
-  } catch (_) {}
-
-  // Fallback: download
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'medication_backup.json';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  debugLog('Starting backup export', { user });
   
-  if (typeof showToast === 'function') showToast('Backup downloaded to device');
+  try {
+    const payload = await collectUserData(user);
+    debugLog('Collected user data for backup', { 
+      user, 
+      medCount: payload.meds?.length || 0, 
+      logCount: Object.keys(payload.logs || {}).length,
+      historyCount: payload.history?.length || 0
+    });
+    
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+
+    // Check if Web Share API with files is supported
+    const hasShareAPI = navigator.share && navigator.canShare;
+    debugLog('Web Share API support', { 
+      hasNavigatorShare: !!navigator.share, 
+      hasCanShare: !!navigator.canShare,
+      hasShareAPI 
+    });
+
+    // Try iOS share sheet first if available
+    if (hasShareAPI) {
+      try {
+        const file = new File([blob], 'medication_backup.json', { type: 'application/json' });
+        const canShareFiles = navigator.canShare({ files: [file] });
+        debugLog('File sharing capability', { canShareFiles });
+        
+        if (canShareFiles) {
+          debugLog('Attempting to share backup file via share sheet');
+          await navigator.share({ files: [file], title: 'Medication Backup' });
+          debugLog('Backup shared successfully via share sheet');
+          if (typeof showToast === 'function') {
+            showToast('✅ Backup shared successfully! Save to iCloud Drive for access across devices.');
+          }
+          return;
+        } else {
+          debugLog('File sharing not supported, falling back to download');
+        }
+      } catch (shareError) {
+        debugLog('Share API failed', shareError);
+        // User may have cancelled, continue to fallback
+      }
+    }
+
+    // Fallback: direct download
+    debugLog('Using fallback download method');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'medication_backup.json';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    setTimeout(() => {
+      URL.revokeObjectURL(a.href);
+      debugLog('Cleaned up blob URL');
+    }, 2000);
+    
+    debugLog('Backup download initiated');
+    
+    // Provide platform-specific guidance
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    let message = '📥 Backup downloaded! ';
+    if (isIOS) {
+      message += 'Check Downloads folder or Files app → On My iPhone/iPad → Downloads. Save to iCloud Drive for cross-device access.';
+    } else if (isMobile) {
+      message += 'Check your Downloads folder or Files app. Consider saving to cloud storage for backup.';
+    } else {
+      message += 'Check your Downloads folder. Consider saving to cloud storage for backup.';
+    }
+    
+    if (typeof showToast === 'function') {
+      showToast(message);
+    }
+    
+  } catch (error) {
+    debugLog('Backup export failed', error);
+    const errorMessage = `❌ Backup export failed: ${error.message || 'Unknown error'}. Please try again.`;
+    if (typeof showToast === 'function') {
+      showToast(errorMessage);
+    } else {
+      alert(errorMessage);
+    }
+  }
 }
 
 function wireBackupUI() {
+  debugLog('Wiring backup UI controls');
+  
   const exportBtn = document.getElementById('btnExportBackup');
   const importBtn = document.getElementById('btnImportBackup');
   const fileInput = document.getElementById('fileImport');
-  if (!exportBtn || !importBtn || !fileInput) return;
-  const user = getCurrentUser ? getCurrentUser() : 'default';
+  
+  if (!exportBtn || !importBtn || !fileInput) {
+    debugLog('Backup UI elements not found', {
+      exportBtn: !!exportBtn,
+      importBtn: !!importBtn, 
+      fileInput: !!fileInput
+    });
+    return;
+  }
+  
+  const user = getCurrentUser();
+  debugLog('Backup UI wired for user', { user });
 
-  exportBtn.addEventListener('click', () => exportBackupIOS(user));
-  importBtn.addEventListener('click', () => fileInput.click());
+  exportBtn.addEventListener('click', async () => {
+    debugLog('Export backup button clicked');
+    try {
+      // Show loading state
+      exportBtn.disabled = true;
+      exportBtn.textContent = 'Exporting...';
+      
+      await exportBackupIOS(user);
+    } catch (error) {
+      debugLog('Export button click failed', error);
+      if (typeof showToast === 'function') {
+        showToast('❌ Export failed. Please try again.');
+      }
+    } finally {
+      // Restore button state
+      exportBtn.disabled = false;
+      exportBtn.textContent = 'Export Backup';
+    }
+  });
+
+  importBtn.addEventListener('click', () => {
+    debugLog('Import backup button clicked');
+    fileInput.click();
+  });
 
   fileInput.addEventListener('change', async (e) => {
     const file = e.target.files && e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      debugLog('No file selected for import');
+      return;
+    }
+    
+    debugLog('Starting backup import', { fileName: file.name, fileSize: file.size });
+    
     try {
-      if (typeof showToast === 'function') showToast('Restoring backup...');
+      if (typeof showToast === 'function') showToast('📥 Restoring backup...');
+      
       const text = await file.text();
       const data = JSON.parse(text);
+      
+      debugLog('Backup file parsed successfully', {
+        medCount: data.meds?.length || 0,
+        logCount: Object.keys(data.logs || {}).length,
+        historyCount: data.history?.length || 0,
+        version: data.version
+      });
+      
       restoreUserData(user, data);
+      
       if (typeof renderMedsGrouped === 'function') renderMedsGrouped();
-      if (typeof showToast === 'function') showToast('✅ Backup restored successfully! All your data has been recovered.');
+      
+      const successMsg = '✅ Backup restored successfully! All your medication data has been recovered.';
+      debugLog('Backup import completed successfully');
+      
+      if (typeof showToast === 'function') showToast(successMsg);
       else alert('Backup restored successfully!');
+      
     } catch (err) {
-      const errorMsg = 'Import failed: ' + (err && err.message ? err.message : err) + '. Please ensure you selected a valid backup file.';
+      debugLog('Backup import failed', err);
+      const errorMsg = `❌ Import failed: ${err && err.message ? err.message : err}. Please ensure you selected a valid backup file.`;
       if (typeof showToast === 'function') showToast(errorMsg);
       else alert(errorMsg);
     } finally {

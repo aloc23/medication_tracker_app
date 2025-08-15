@@ -109,17 +109,31 @@
   <script src="app.js"></script>
 
 <!-- Backup controls -->
-<div id="backupControls" style="margin:12px 0; padding:8px;">
-  <button id="btnExportBackup">Export Backup</button>
-  <input id="fileImport" type="file" accept="application/json" style="display:none" />
-  <button id="btnImportBackup">Import Backup</button>
-  <small style="display:block;margin-top:8px;opacity:.9;line-height:1.4;">
-    <strong>💡 Backup Tips:</strong><br>
-    • <strong>Export</strong>: Creates a backup file you can save to iCloud Drive, Files app, or share<br>
-    • <strong>Import</strong>: Restore from a previously saved backup file<br>
-    • Save backups to <strong>iCloud Drive → Files</strong> to access across devices<br>
-    • Regular backups protect your medication data from being lost
-  </small>
+<div id="backupControls">
+  <div class="backup-header">
+    <h3><i class="fas fa-shield-alt"></i> Data Backup & Restore</h3>
+    <p>Protect your medication data with regular backups</p>
+  </div>
+  <div class="backup-buttons">
+    <button id="btnExportBackup" class="backup-btn export-btn">
+      <i class="fas fa-download"></i>
+      <span>Export Backup</span>
+    </button>
+    <input id="fileImport" type="file" accept="application/json" style="display:none" />
+    <button id="btnImportBackup" class="backup-btn import-btn">
+      <i class="fas fa-upload"></i>
+      <span>Import Backup</span>
+    </button>
+  </div>
+  <div class="backup-tips">
+    <strong><i class="fas fa-lightbulb"></i> Backup Guide:</strong>
+    <ul>
+      <li><strong>Export:</strong> Downloads a backup file to save in iCloud Drive, Files app, or cloud storage</li>
+      <li><strong>Import:</strong> Restores your data from a previously saved backup file</li>
+      <li><strong>Best Practice:</strong> Export regularly and save to <strong>iCloud Drive → Files</strong> for cross-device access</li>
+      <li><strong>File Location:</strong> On iOS/iPad, check Downloads folder or Files app after export</li>
+    </ul>
+  </div>
 </div>
 
 </body>
