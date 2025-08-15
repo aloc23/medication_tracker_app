@@ -42,13 +42,15 @@ header.sticky-header nav button {
   color: #e1e8ed;
   border: 1px solid rgba(38, 166, 154, 0.3);
   border-radius: 16px;
-  padding: 12px 24px;
+  padding: 14px 20px;
   font-size: 1.05em;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   outline: none;
+  min-height: 44px;
+  min-width: 44px;
 }
 header.sticky-header nav button:hover, header.sticky-header nav button:focus {
   background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
@@ -289,7 +291,9 @@ main {
   flex: 1;
   text-align: center;
   letter-spacing: 0.02em;
-  color: #e1e8ed;
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 #calendar {
   display: grid;
@@ -298,19 +302,21 @@ main {
   margin-bottom: 12px;
 }
 #calendar > div {
-  min-height: 42px;
-  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
-  color: #e1e8ed;
-  border: 1px solid rgba(38, 166, 154, 0.2);
+  min-height: 44px;
+  background: linear-gradient(135deg, #455a64 0%, #546e7a 100%);
+  color: #ffffff;
+  border: 1px solid rgba(38, 166, 154, 0.3);
   border-radius: 12px;
   text-align: center;
-  font-size: 1.01em;
+  font-size: 1.05em;
+  font-weight: 600;
   padding: 8px 0 0 0;
   position: relative;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   outline: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 #calendar > div:hover, #calendar > div:focus {
   background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
@@ -328,25 +334,28 @@ main {
   font-weight: 600;
 }
 .dose-badge {
-  background: rgba(38, 166, 154, 0.2);
-  color: #00bcd4;
+  background: rgba(0, 188, 212, 0.15);
+  color: #00e5ff;
   border-radius: 12px;
   padding: 4px 12px;
   font-size: 0.94em;
   margin-left: 5px;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-block;
-  border: 1px solid rgba(38, 166, 154, 0.3);
+  border: 1px solid rgba(0, 188, 212, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 .dose-badge.missed {
-  background: rgba(229, 57, 53, 0.2);
-  color: #f44336;
-  border-color: rgba(229, 57, 53, 0.3);
+  background: rgba(244, 67, 54, 0.15);
+  color: #ff5252;
+  border-color: rgba(244, 67, 54, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 .dose-badge.upcoming {
-  background: rgba(38, 166, 154, 0.2);
-  color: #26a69a;
-  border-color: rgba(38, 166, 154, 0.3);
+  background: rgba(38, 166, 154, 0.15);
+  color: #4db6ac;
+  border-color: rgba(38, 166, 154, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 #calendarDayDetail {
   margin-top: 22px;
@@ -659,4 +668,92 @@ button {
 
 #backupControls small {
   color: #90a4ae;
+}
+
+/* Mobile Responsive Improvements */
+@media (max-width: 768px) {
+  /* Improved header spacing and navigation */
+  header.sticky-header h1 {
+    font-size: 2em;
+    padding: 16px 0 0 16px;
+  }
+  
+  header.sticky-header nav {
+    padding: 0 0 12px 12px;
+    gap: 8px;
+  }
+  
+  header.sticky-header nav button {
+    padding: 16px 12px;
+    font-size: 0.95em;
+    min-height: 44px;
+    flex: 1;
+    text-align: center;
+  }
+  
+  /* Better main content spacing */
+  main {
+    padding: 0 12px;
+    margin: 20px auto 20px auto;
+  }
+  
+  /* Larger touch targets for calendar navigation */
+  #calendarNav button {
+    padding: 12px 20px;
+    font-size: 1.1em;
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better calendar grid for mobile */
+  #calendar {
+    gap: 6px;
+  }
+  
+  #calendar > div {
+    min-height: 48px;
+    font-size: 1.1em;
+    padding: 10px 0 0 0;
+  }
+  
+  /* Larger backup control buttons */
+  #backupControls button {
+    padding: 16px 24px;
+    font-size: 1.1em;
+    min-height: 44px;
+    width: 100%;
+    margin: 0 0 12px 0;
+  }
+  
+  /* Better form elements */
+  input, textarea, select, button {
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 44px;
+  }
+  
+  .section-title {
+    font-size: 1.6em;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  header.sticky-header nav {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  header.sticky-header nav button {
+    width: 100%;
+    margin: 0;
+  }
+  
+  #calendarNav {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  #calendarNav button {
+    width: 100%;
+  }
 }
