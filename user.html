@@ -5,131 +5,239 @@
   <title>Select User</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f0f4f8;
-      min-height: 100vh;
-      margin: 0;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
       display: flex;
       justify-content: center;
       align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: var(--font-family);
     }
-    .card {
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-      padding: 36px 28px 28px 28px;
-      width: 95vw;
-      max-width: 380px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    h1 {
-      color: #007bff;
-      font-size: 2rem;
-      font-weight: 600;
-      margin-bottom: 26px;
-      letter-spacing: 1px;
-      text-align: center;
-    }
-    #user-list {
+    
+    .user-selection-card {
+      background: var(--surface-elevated);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      padding: var(--spacing-2xl);
       width: 100%;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
+      max-width: 420px;
+      margin: var(--spacing-lg);
+      border: 1px solid var(--border-color);
     }
-    .user-row {
+    
+    .user-selection-header {
+      text-align: center;
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    .user-selection-header h1 {
+      color: var(--primary-color);
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      margin-bottom: var(--spacing-sm);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      background: #f7faff;
-      border-radius: 8px;
-      padding: 0 0 0 0;
-      transition: box-shadow 0.1s;
+      justify-content: center;
+      gap: var(--spacing-md);
     }
+    
+    .user-selection-header p {
+      color: var(--text-secondary);
+      font-size: var(--font-size-base);
+      margin: 0;
+    }
+    
+    .user-list {
+      margin-bottom: var(--spacing-xl);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+    
+    .user-item {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: all var(--transition-fast);
+    }
+    
+    .user-item:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-hover);
+    }
+    
     .user-btn {
       flex: 1;
-      font-size: 1.08rem;
-      font-weight: 500;
-      padding: 12px 0;
-      border: none;
+      padding: var(--spacing-lg);
       background: transparent;
-      color: #007bff;
-      border-radius: 8px 0 0 8px;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.15s, color 0.15s;
-    }
-    .user-btn:hover {
-      background: #e3eaf3;
-      color: #0056b3;
-    }
-    .delete-btn {
-      background: none;
       border: none;
-      color: #d32f2f;
-      font-size: 1.35em;
-      padding: 0 16px;
-      border-radius: 0 8px 8px 0;
-      cursor: pointer;
-      transition: background 0.13s, color 0.18s;
-    }
-    .delete-btn:hover {
-      background: #f8d7da;
-      color: #b71c1c;
-    }
-    #add-user-form {
-      width: 100%;
-      display: flex;
-      gap: 8px;
-      margin-top: 18px;
-    }
-    #new-user-name {
-      flex: 1;
-      padding: 9px 12px;
-      border-radius: 7px;
-      border: 1px solid #cbd6e2;
-      font-size: 1.03em;
-      background: #f9fbfd;
-      transition: border 0.18s;
-    }
-    #new-user-name:focus {
-      border: 1.5px solid #007bff;
-      outline: none;
-    }
-    #add-user-form button[type="submit"] {
-      background: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      padding: 0 18px;
-      font-size: 1.05em;
+      color: var(--text-primary);
+      font-size: var(--font-size-lg);
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.17s;
+      text-align: left;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      min-height: 60px;
     }
-    #add-user-form button[type="submit"]:hover {
-      background: #0056b3;
+    
+    .user-btn:hover {
+      background: rgba(37, 99, 235, 0.05);
+      color: var(--primary-color);
     }
-    @media (max-width: 450px) {
-      .card { padding: 18px 5vw; }
-      h1 { font-size: 1.2rem; }
+    
+    .user-btn i {
+      color: var(--primary-color);
+      font-size: var(--font-size-xl);
+    }
+    
+    .delete-btn {
+      padding: var(--spacing-lg);
+      background: transparent;
+      border: none;
+      color: var(--error-color);
+      font-size: var(--font-size-xl);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      min-height: 60px;
+      min-width: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .delete-btn:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+    
+    .add-user-form {
+      display: flex;
+      gap: var(--spacing-md);
+    }
+    
+    .add-user-form input {
+      flex: 1;
+      padding: var(--spacing-md);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-base);
+      background: var(--surface-elevated);
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+      min-height: 44px;
+    }
+    
+    .add-user-form input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .add-user-form input::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    .add-user-form button {
+      padding: var(--spacing-md) var(--spacing-xl);
+      background: var(--primary-color);
+      color: var(--text-on-primary);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      min-height: 44px;
+      white-space: nowrap;
+    }
+    
+    .add-user-form button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .back-link {
+      text-align: center;
+      margin-top: var(--spacing-xl);
+      padding-top: var(--spacing-lg);
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .back-link a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: var(--font-size-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      transition: color var(--transition-fast);
+    }
+    
+    .back-link a:hover {
+      color: var(--primary-color);
+    }
+    
+    @media (max-width: 480px) {
+      .user-selection-card {
+        margin: var(--spacing-md);
+        padding: var(--spacing-xl);
+      }
+      
+      .user-selection-header h1 {
+        font-size: var(--font-size-xl);
+      }
+      
+      .add-user-form {
+        flex-direction: column;
+      }
+      
+      .add-user-form button {
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Who is using the app?</h1>
-    <div id="user-list"></div>
-    <form id="add-user-form" autocomplete="off">
-      <input id="new-user-name" placeholder="New user name" required maxlength="20" />
-      <button type="submit">Add User</button>
+  <div class="user-selection-card">
+    <div class="user-selection-header">
+      <h1>
+        <i class="fas fa-user-friends"></i>
+        User Selection
+      </h1>
+      <p>Choose your profile to continue</p>
+    </div>
+    
+    <div id="user-list" class="user-list"></div>
+    
+    <form id="add-user-form" class="add-user-form" autocomplete="off">
+      <input id="new-user-name" placeholder="Enter new user name" required maxlength="20" />
+      <button type="submit">
+        <i class="fas fa-plus"></i>
+        Add User
+      </button>
     </form>
+    
+    <div class="back-link">
+      <a href="index.html">
+        <i class="fas fa-arrow-left"></i>
+        Back to App
+      </a>
+    </div>
   </div>
+  
   <script>
     function getUsers() {
       return JSON.parse(localStorage.getItem('userList') || '["GARY","TRISH"]');
@@ -142,26 +250,32 @@
       const div = document.getElementById('user-list');
       div.innerHTML = '';
       users.forEach(user => {
-        const row = document.createElement('div');
-        row.className = "user-row";
+        const item = document.createElement('div');
+        item.className = "user-item";
+        
         // Main button
         const btn = document.createElement('button');
-        btn.textContent = user;
         btn.className = "user-btn";
         btn.onclick = () => selectUser(user);
-        // Delete
+        btn.innerHTML = `
+          <i class="fas fa-user-circle"></i>
+          <span>${user}</span>
+        `;
+        
+        // Delete button
         const del = document.createElement('button');
-        del.textContent = "🗑️";
         del.className = "delete-btn";
+        del.innerHTML = '<i class="fas fa-trash-alt"></i>';
         del.onclick = (e) => {
           e.stopPropagation();
           if (confirm(`Delete user "${user}" and all their data?`)) {
             deleteUser(user);
           }
         };
-        row.appendChild(btn);
-        row.appendChild(del);
-        div.appendChild(row);
+        
+        item.appendChild(btn);
+        item.appendChild(del);
+        div.appendChild(item);
       });
     }
     function selectUser(user) {

@@ -22,6 +22,53 @@ function debugLog(message, data = null) {
   }
 }
 
+// ===== Modern Navigation System =====
+function showSection(sectionId) {
+  // Hide all sections
+  document.querySelectorAll('.content-section').forEach(section => {
+    section.classList.remove('active');
+  });
+  
+  // Show the selected section
+  const targetSection = document.getElementById(sectionId);
+  if (targetSection) {
+    targetSection.classList.add('active');
+  }
+  
+  // Update navigation active states
+  updateNavActiveState(sectionId);
+}
+
+function updateNavActiveState(activeSectionId) {
+  // Update desktop navigation
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.section === activeSectionId) {
+      btn.classList.add('active');
+    }
+  });
+  
+  // Update mobile navigation
+  document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.section === activeSectionId) {
+      btn.classList.add('active');
+    }
+  });
+}
+
+// Legacy function compatibility
+function hideAllSections() {
+  document.querySelectorAll('.content-section').forEach(section => {
+    section.classList.remove('active');
+  });
+}
+
+// Add a specific function for showing medications
+window.showMedications = function() {
+  renderMedsGrouped();
+};
+
 document.addEventListener("DOMContentLoaded", async function () {
 
 // ===== IndexedDB Persistence Layer (iOS-friendly) =====
@@ -148,8 +195,7 @@ function showToast(msg, duration = 2000) {
 let editMedicationIndex = null;
 
 window.showAddMedication = function(index = null) {
-  hideAllSections();
-  document.getElementById('addMedSection').style.display = 'block';
+  showSection('addMedSection');
   document.getElementById('addMedForm').reset();
   document.getElementById('addTimeInputs').innerHTML = '';
   addTimeInputToAddForm();
@@ -160,11 +206,11 @@ window.showAddMedication = function(index = null) {
   editMedicationIndex = index;
 
   if (index === null) {
-    document.getElementById('addMedSectionTitle').textContent = "Add Medication";
+    document.getElementById('addMedSectionTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Add Medication';
     document.getElementById('addMedSubmitBtn').textContent = "Add Medication";
     document.getElementById('addMedCancelBtn').style.display = "none";
   } else {
-    document.getElementById('addMedSectionTitle').textContent = "Edit Medication";
+    document.getElementById('addMedSectionTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Medication';
     document.getElementById('addMedSubmitBtn').textContent = "Update Medication";
     document.getElementById('addMedCancelBtn').style.display = "";
     const user = getCurrentUser();
@@ -216,7 +262,6 @@ attachAddRecurrenceEventHandlers();
 
 window.cancelEditMedication = function() {
   editMedicationIndex = null;
-  document.getElementById('addMedSection').style.display = 'none';
   renderMedsGrouped();
 };
 
@@ -352,14 +397,19 @@ body.forEach(row => {
 // ===== Medication List Logic =====
 
 window.renderMedsGrouped = function() {
-  hideAllSections();
+  // Don't call showSection here to avoid recursion
+  updateNavActiveState('medListSection');
+  document.querySelectorAll('.content-section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.getElementById('medListSection').classList.add('active');
+  
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   const medList = document.getElementById('medList');
-  document.getElementById('medListSection').style.display = 'block';
   medList.innerHTML = '';
   if (meds.length === 0) {
-    medList.innerHTML = "<i>No medications added.</i>";
+    medList.innerHTML = "<div class='empty-state'><i class='fas fa-pills'></i><p>No medications added yet.</p><p><a href='#' onclick='showAddMedication()'>Add your first medication</a></p></div>";
     return;
   }
   const grouped = {};
@@ -491,8 +541,7 @@ window.deleteMed = function(index) {
 // ===== Medication Change History (Sidebar/Collapsible/Export, Consolidate Dates, Export Excel) =====
 
 window.showMedChangeHistory = function() {
-  hideAllSections();
-  document.getElementById("medChangeHistorySection").style.display = "block";
+  showSection('medChangeHistorySection');
   renderMedChangeHistorySidebar();
 };
 
@@ -756,11 +805,10 @@ function exportMedCompareToExcel(before, after, filename = "medication-change.xl
 // ===== Stock Management =====
 
 window.showStockManager = function() {
-  hideAllSections();
+  showSection('stockManagerSection');
   const user = getCurrentUser();
   let meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
   const stockSection = document.getElementById('stockManager');
-  document.getElementById('stockManagerSection').style.display = 'block';
   stockSection.innerHTML = '';
   meds.forEach((med, i) => {
     const div = document.createElement('div');
@@ -951,8 +999,7 @@ window.renderAdherenceChart = function() {
 // ===== Calendar (with correct month title) =====
 
 window.showCalendar = function(monthDelta = 0) {
-  hideAllSections();
-  document.getElementById('calendarSection').style.display = 'block';
+  showSection('calendarSection');
 
   if (window._calendarMonth === undefined || window._calendarYear === undefined) {
     const today = new Date();
@@ -1162,7 +1209,7 @@ window.exportMedicationListCSV = function() {
 // ===== Show History =====
 
 window.showHistory = function() {
-  hideAllSections();
+  showSection('historySection');
   const user = getCurrentUser();
   const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
   const historyDiv = document.getElementById('history');
@@ -1174,7 +1221,6 @@ window.showHistory = function() {
   });
   html += '</table>';
   historyDiv.innerHTML = html;
-  document.getElementById('historySection').style.display = 'block';
   // Make sure the Adherence and CSV collapsibles are closed on opening history
   var adherenceSection = document.getElementById('adherenceCollapsible');
   if (adherenceSection) adherenceSection.style.display = 'none';

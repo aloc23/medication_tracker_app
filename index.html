@@ -15,90 +15,206 @@
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-  <header class="sticky-header">
-    <h1>Medication Tracker</h1>
-    <nav>
-      <button onclick="renderMedsGrouped()"><i class="fas fa-pills"></i> Medications</button>
-      <button onclick="showAddMedication()"><i class="fas fa-plus-circle"></i> Add Medication</button>
-      <button onclick="showMedChangeHistory()"><i class="fas fa-history"></i> Change History</button>
-      <button onclick="showStockManager()"><i class="fas fa-boxes"></i> Stock</button>
-      <button onclick="showCalendar()"><i class="fas fa-calendar-alt"></i> Calendar</button>
-      <button onclick="showHistory()"><i class="fas fa-chart-line"></i> History</button>
-      <button onclick="location.href='user.html'"><i class="fas fa-user-friends"></i> Switch User</button>
-    </nav>
+  <header class="app-header">
+    <div class="header-content">
+      <h1>Medication Tracker</h1>
+      <button class="user-switch-btn" onclick="location.href='user.html'">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-label">Switch User</span>
+      </button>
+    </div>
   </header>
-  <main>
-    <section id="medListSection">
-      <h2 class="section-title"><i class="fas fa-pills"></i> Your Medications</h2>
-      <div id="medList"></div>
-      <div id="medListExportBtns" style="margin:12px 0;">
-        <button onclick="exportMedListPDF()">Export Med List as PDF</button>
-        <button onclick="exportMedListJPEG()">Export Med List as JPEG</button>
-        <button onclick="exportCurrentMedListExcel()">Export Med List as Excel</button>
-        <button onclick="exportMedicationListCSV()">Export Med List as CSV</button>
+  
+  <!-- Desktop Navigation -->
+  <nav class="desktop-nav">
+    <div class="nav-container">
+      <button class="nav-btn active" data-section="medListSection" onclick="showMedications()">
+        <i class="fas fa-pills"></i>
+        <span>Medications</span>
+      </button>
+      <button class="nav-btn" data-section="addMedSection" onclick="showAddMedication()">
+        <i class="fas fa-plus-circle"></i>
+        <span>Add Medication</span>
+      </button>
+      <button class="nav-btn" data-section="calendarSection" onclick="showCalendar()">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Calendar</span>
+      </button>
+      <button class="nav-btn" data-section="stockManagerSection" onclick="showStockManager()">
+        <i class="fas fa-boxes"></i>
+        <span>Stock</span>
+      </button>
+      <button class="nav-btn" data-section="historySection" onclick="showHistory()">
+        <i class="fas fa-chart-line"></i>
+        <span>History</span>
+      </button>
+      <button class="nav-btn" data-section="medChangeHistorySection" onclick="showMedChangeHistory()">
+        <i class="fas fa-history"></i>
+        <span>Changes</span>
+      </button>
+    </div>
+  </nav>
+  
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-nav">
+    <button class="mobile-nav-btn active" data-section="medListSection" onclick="showMedications()">
+      <i class="fas fa-pills"></i>
+      <span>Meds</span>
+    </button>
+    <button class="mobile-nav-btn" data-section="addMedSection" onclick="showAddMedication()">
+      <i class="fas fa-plus-circle"></i>
+      <span>Add</span>
+    </button>
+    <button class="mobile-nav-btn" data-section="calendarSection" onclick="showCalendar()">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Calendar</span>
+    </button>
+    <button class="mobile-nav-btn" data-section="stockManagerSection" onclick="showStockManager()">
+      <i class="fas fa-boxes"></i>
+      <span>Stock</span>
+    </button>
+    <button class="mobile-nav-btn" data-section="historySection" onclick="showHistory()">
+      <i class="fas fa-chart-line"></i>
+      <span>History</span>
+    </button>
+  </nav>
+  <main class="app-main">
+    <section id="medListSection" class="content-section active">
+      <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-pills"></i> Your Medications</h2>
       </div>
-      <button id="resetDataBtn" class="reset-btn" style="margin-bottom:12px;">Reset All Data</button>
+      <div id="medList" class="medication-list"></div>
+      <div class="action-buttons">
+        <div class="export-group">
+          <h3>Export Options</h3>
+          <button class="export-btn" onclick="exportMedListPDF()">
+            <i class="fas fa-file-pdf"></i> PDF
+          </button>
+          <button class="export-btn" onclick="exportMedListJPEG()">
+            <i class="fas fa-image"></i> JPEG
+          </button>
+          <button class="export-btn" onclick="exportCurrentMedListExcel()">
+            <i class="fas fa-file-excel"></i> Excel
+          </button>
+          <button class="export-btn" onclick="exportMedicationListCSV()">
+            <i class="fas fa-file-csv"></i> CSV
+          </button>
+        </div>
+        <div class="backup-group">
+          <h3>Backup & Restore</h3>
+          <button class="backup-btn export-btn" id="btnExportBackup">
+            <i class="fas fa-download"></i> Export Backup
+          </button>
+          <input id="fileImport" type="file" accept="application/json" style="display:none" />
+          <button class="backup-btn import-btn" id="btnImportBackup">
+            <i class="fas fa-upload"></i> Import Backup
+          </button>
+        </div>
+        <button id="resetDataBtn" class="reset-btn">
+          <i class="fas fa-trash-alt"></i> Reset All Data
+        </button>
+      </div>
     </section>
-    <section id="addMedSection" style="display:none;">
-      <h2 class="section-title" id="addMedSectionTitle"><i class="fas fa-plus-circle"></i> Add Medication</h2>
-      <form id="addMedForm" autocomplete="off">
-        <input id="addMedName" type="text" placeholder="Medication Name" required maxlength="40" />
-        <input id="addQty" type="number" placeholder="Dose Amount" required min="1" max="1000" />
-        <div id="addTimeInputs"></div>
-        <button type="button" id="addTimeBtn" onclick="addTimeInputToAddForm()"><i class="fas fa-clock"></i> Add Dose Time</button>
-        <textarea id="addMedNotes" placeholder="Instructions, e.g. take with food" rows="2" maxlength="120"></textarea>
-        <div style="margin: 8px 0;">
-          <label>
+    <section id="addMedSection" class="content-section" style="display:none;">
+      <div class="section-header">
+        <h2 class="section-title" id="addMedSectionTitle"><i class="fas fa-plus-circle"></i> Add Medication</h2>
+      </div>
+      <form id="addMedForm" class="medication-form" autocomplete="off">
+        <div class="form-group">
+          <label for="addMedName">Medication Name</label>
+          <input id="addMedName" type="text" placeholder="Enter medication name" required maxlength="40" />
+        </div>
+        <div class="form-group">
+          <label for="addQty">Dose Amount</label>
+          <input id="addQty" type="number" placeholder="Number of pills/mg" required min="1" max="1000" />
+        </div>
+        <div class="form-group">
+          <label>Dose Times</label>
+          <div id="addTimeInputs" class="time-inputs"></div>
+          <button type="button" id="addTimeBtn" class="secondary-btn" onclick="addTimeInputToAddForm()">
+            <i class="fas fa-clock"></i> Add Dose Time
+          </button>
+        </div>
+        <div class="form-group">
+          <label for="addMedNotes">Instructions</label>
+          <textarea id="addMedNotes" placeholder="e.g., take with food, after meals..." rows="3" maxlength="120"></textarea>
+        </div>
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
             <input type="checkbox" id="addRecursDaily" checked>
+            <span class="checkmark"></span>
             Repeat Daily
           </label>
         </div>
-        <div id="addRecurrencePeriod" style="display:none; margin-bottom: 12px;">
-          <label>Start date: <input type="date" id="addRecStart"></label>
-          <label style="margin-left:8px;">End date: <input type="date" id="addRecEnd"></label>
+        <div id="addRecurrencePeriod" class="form-group date-range-group" style="display:none;">
+          <div class="date-inputs">
+            <div class="date-input">
+              <label for="addRecStart">Start date</label>
+              <input type="date" id="addRecStart">
+            </div>
+            <div class="date-input">
+              <label for="addRecEnd">End date</label>
+              <input type="date" id="addRecEnd">
+            </div>
+          </div>
         </div>
-        <!-- Spreadsheet Upload Option -->
-        <div style="margin-top:12px;">
-          <label for="uploadMedSheet">
-            <b>Or upload from spreadsheet:</b>
+        <div class="form-group upload-group">
+          <label for="uploadMedSheet" class="upload-label">
+            <i class="fas fa-upload"></i>
+            <span>Or upload from spreadsheet</span>
             <input type="file" id="uploadMedSheet" accept=".xlsx,.xls,.csv" />
           </label>
         </div>
-        <button type="submit" id="addMedSubmitBtn">Add Medication</button>
-        <button type="button" id="addMedCancelBtn" style="display:none;margin-left:8px;" onclick="cancelEditMedication()">Cancel</button>
+        <div class="form-actions">
+          <button type="submit" id="addMedSubmitBtn" class="primary-btn">Add Medication</button>
+          <button type="button" id="addMedCancelBtn" class="secondary-btn" style="display:none;" onclick="cancelEditMedication()">Cancel</button>
+        </div>
       </form>
     </section>
-    <section id="medChangeHistorySection" style="display:none;">
+    <section id="medChangeHistorySection" class="content-section" style="display:none;">
+      <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-history"></i> Change History</h2>
+      </div>
       <!-- JS renders full sidebar and details here -->
     </section>
-    <section id="calendarSection" style="display:none;">
-      <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Calendar</h2>
-      <div id="calendarNav"></div>
-      <div id="calendar"></div>
-      <div id="calendarDayDetail"></div>
-      <div class="collapsible" onclick="toggleWeeklyTimeline()">
-        <b>Weekly Timeline</b>
-        <span id="weeklyCollapseIcon">[+]</span>
+    <section id="calendarSection" class="content-section" style="display:none;">
+      <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Calendar</h2>
       </div>
-      <div id="weeklyCollapsible" style="display:none;">
+      <div id="calendarNav" class="calendar-navigation"></div>
+      <div id="calendar" class="calendar-grid"></div>
+      <div id="calendarDayDetail" class="calendar-detail"></div>
+      <div class="collapsible" onclick="toggleWeeklyTimeline()">
+        <span><i class="fas fa-calendar-week"></i> Weekly Timeline</span>
+        <span id="weeklyCollapseIcon" class="collapse-icon">[+]</span>
+      </div>
+      <div id="weeklyCollapsible" class="collapsible-content" style="display:none;">
         <div id="weeklyView"></div>
       </div>
     </section>
-    <section id="stockManagerSection" style="display:none;">
-      <h2 class="section-title"><i class="fas fa-boxes"></i> Stock Management</h2>
-      <div id="stockManager"></div>
-    </section>
-    <section id="historySection" style="display:none;">
-      <h2 class="section-title"><i class="fas fa-chart-line"></i> Medication History</h2>
-      <div id="history"></div>
-      <button id="exportCsvBtn" onclick="exportLogs()">Export CSV</button>
-      <div class="collapsible" onclick="toggleAdherenceChart()">
-        <b>Adherence Chart</b>
-        <span id="adherenceCollapseIcon">[+]</span>
+    <section id="stockManagerSection" class="content-section" style="display:none;">
+      <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-boxes"></i> Stock Management</h2>
       </div>
-      <div id="adherenceCollapsible" style="display:none;">
+      <div id="stockManager" class="stock-container"></div>
+    </section>
+    <section id="historySection" class="content-section" style="display:none;">
+      <div class="section-header">
+        <h2 class="section-title"><i class="fas fa-chart-line"></i> Medication History</h2>
+      </div>
+      <div id="history" class="history-container"></div>
+      <div class="action-buttons">
+        <button id="exportCsvBtn" class="export-btn" onclick="exportLogs()">
+          <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+      </div>
+      <div class="collapsible" onclick="toggleAdherenceChart()">
+        <span><i class="fas fa-chart-bar"></i> Adherence Chart</span>
+        <span id="adherenceCollapseIcon" class="collapse-icon">[+]</span>
+      </div>
+      <div id="adherenceCollapsible" class="collapsible-content" style="display:none;">
         <canvas id="adherenceChart"></canvas>
-        <select id="chartRange" onchange="renderAdherenceChart()">
+        <select id="chartRange" class="chart-range-select" onchange="renderAdherenceChart()">
           <option value="7">Last 7 days</option>
           <option value="30">Last 30 days</option>
           <option value="all">All time</option>
@@ -108,40 +224,5 @@
     <div id="toast" style="display:none;" class="toast"></div>
   </main>
   <script src="app.js"></script>
-
-<!-- Enhanced Backup controls -->
-<div id="backupControls">
-  <div class="backup-header">
-    <h3><i class="fas fa-shield-alt"></i> Data Backup & Restore</h3>
-    <p>Protect your medication data with comprehensive backup options</p>
-  </div>
-  <div class="backup-buttons">
-    <button id="btnExportBackup" class="backup-btn export-btn">
-      <i class="fas fa-download"></i>
-      <span>Export Full Backup</span>
-    </button>
-    <input id="fileImport" type="file" accept="application/json" style="display:none" />
-    <button id="btnImportBackup" class="backup-btn import-btn">
-      <i class="fas fa-upload"></i>
-      <span>Import Backup</span>
-    </button>
-  </div>
-  <div class="backup-tips">
-    <strong><i class="fas fa-lightbulb"></i> Comprehensive Backup Guide:</strong>
-    <ul>
-      <li><strong>Full Backup (JSON):</strong> Complete data backup including medications, logs, and history</li>
-      <li><strong>CSV Exports:</strong> Use "Export as CSV" buttons in Medications and History sections for spreadsheet compatibility</li>
-      <li><strong>PDF/Excel:</strong> Available in Medications section for formatted reports</li>
-      <li><strong>Cloud Storage:</strong> Save backups to iCloud Drive, Google Drive, or Dropbox for cross-device access</li>
-      <li><strong>Best Practice:</strong> Export weekly backups to <strong>iCloud Drive → Files</strong></li>
-      <li><strong>Data Persistence:</strong> App uses localStorage + IndexedDB for reliable storage</li>
-      <li><strong>Recovery:</strong> Import any JSON backup to restore all your data</li>
-    </ul>
-  </div>
-  <div class="backup-status">
-    <p><i class="fas fa-info-circle"></i> <strong>Storage Status:</strong> Your data is automatically saved locally and synchronized to IndexedDB for enhanced persistence.</p>
-  </div>
-</div>
-
 </body>
 </html>
