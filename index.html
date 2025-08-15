@@ -35,6 +35,7 @@
         <button onclick="exportMedListPDF()">Export Med List as PDF</button>
         <button onclick="exportMedListJPEG()">Export Med List as JPEG</button>
         <button onclick="exportCurrentMedListExcel()">Export Med List as Excel</button>
+        <button onclick="exportMedicationListCSV()">Export Med List as CSV</button>
       </div>
       <button id="resetDataBtn" class="reset-btn" style="margin-bottom:12px;">Reset All Data</button>
     </section>
@@ -108,16 +109,16 @@
   </main>
   <script src="app.js"></script>
 
-<!-- Backup controls -->
+<!-- Enhanced Backup controls -->
 <div id="backupControls">
   <div class="backup-header">
     <h3><i class="fas fa-shield-alt"></i> Data Backup & Restore</h3>
-    <p>Protect your medication data with regular backups</p>
+    <p>Protect your medication data with comprehensive backup options</p>
   </div>
   <div class="backup-buttons">
     <button id="btnExportBackup" class="backup-btn export-btn">
       <i class="fas fa-download"></i>
-      <span>Export Backup</span>
+      <span>Export Full Backup</span>
     </button>
     <input id="fileImport" type="file" accept="application/json" style="display:none" />
     <button id="btnImportBackup" class="backup-btn import-btn">
@@ -126,13 +127,19 @@
     </button>
   </div>
   <div class="backup-tips">
-    <strong><i class="fas fa-lightbulb"></i> Backup Guide:</strong>
+    <strong><i class="fas fa-lightbulb"></i> Comprehensive Backup Guide:</strong>
     <ul>
-      <li><strong>Export:</strong> Downloads a backup file to save in iCloud Drive, Files app, or cloud storage</li>
-      <li><strong>Import:</strong> Restores your data from a previously saved backup file</li>
-      <li><strong>Best Practice:</strong> Export regularly and save to <strong>iCloud Drive → Files</strong> for cross-device access</li>
-      <li><strong>File Location:</strong> On iOS/iPad, check Downloads folder or Files app after export</li>
+      <li><strong>Full Backup (JSON):</strong> Complete data backup including medications, logs, and history</li>
+      <li><strong>CSV Exports:</strong> Use "Export as CSV" buttons in Medications and History sections for spreadsheet compatibility</li>
+      <li><strong>PDF/Excel:</strong> Available in Medications section for formatted reports</li>
+      <li><strong>Cloud Storage:</strong> Save backups to iCloud Drive, Google Drive, or Dropbox for cross-device access</li>
+      <li><strong>Best Practice:</strong> Export weekly backups to <strong>iCloud Drive → Files</strong></li>
+      <li><strong>Data Persistence:</strong> App uses localStorage + IndexedDB for reliable storage</li>
+      <li><strong>Recovery:</strong> Import any JSON backup to restore all your data</li>
     </ul>
+  </div>
+  <div class="backup-status">
+    <p><i class="fas fa-info-circle"></i> <strong>Storage Status:</strong> Your data is automatically saved locally and synchronized to IndexedDB for enhanced persistence.</p>
   </div>
 </div>
 

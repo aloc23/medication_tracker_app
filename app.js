@@ -1115,20 +1115,48 @@ window.markCalendarTaken = function(iso, medIdx, t) {
 window.exportLogs = function() {
   const user = getCurrentUser();
   const logs = JSON.parse(localStorage.getItem(user + '_medLogs')) || {};
-  let csv = "Date,Medication,Time,Dose\n";
+  let csv = "Date,Medication,Time,Dose,Status\n";
   Object.entries(logs).forEach(([date, entries]) => {
     entries.forEach(e => {
-      csv += `${date},${e.name},${e.time},${e.dosage}\n`;
+      csv += `${date},"${e.name}",${e.time},"${e.dosage}",Taken\n`;
     });
   });
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${user}_medication_log.csv`;
+  link.download = `${user}_medication_log_${new Date().toISOString().split('T')[0]}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  showToast('✅ Medication log exported as CSV');
+};
+
+// ===== Export Current Medication List as CSV =====
+
+window.exportMedicationListCSV = function() {
+  const user = getCurrentUser();
+  const meds = JSON.parse(localStorage.getItem(user + '_medications')) || [];
+  
+  let csv = "Medication Name,Dosage,Times,Notes,Reminders,Recurrence,Stock\n";
+  meds.forEach(med => {
+    const times = med.times ? med.times.map(t => t.time).join('; ') : '';
+    const reminders = med.reminders ? med.reminders.join('; ') : '';
+    const recurrence = med.recurrence === 'daily' ? 'Daily' : `${med.recurrenceStart} to ${med.recurrenceEnd}`;
+    csv += `"${med.name}","${med.dosage}","${times}","${med.notes || ''}","${reminders}","${recurrence}","${med.stock || 0}"\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${user}_medication_list_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  showToast('✅ Medication list exported as CSV');
 };
 
 // ===== Show History =====
@@ -1216,6 +1244,42 @@ if (weeklyIcon) weeklyIcon.textContent = '[+]';
 // ===== Show medications list by default =====
 renderMedsGrouped();
 
+});
+
+// ===== Mobile Navigation Scroll Behavior =====
+let lastScrollTop = 0;
+let scrollThreshold = 50;
+
+function handleScroll() {
+  const header = document.querySelector('header.sticky-header');
+  const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+  
+  if (currentScroll > scrollThreshold) {
+    header.classList.add('scrolled');
+  } else {
+    header.classList.remove('scrolled');
+  }
+  
+  lastScrollTop = currentScroll;
+}
+
+// Add scroll listener for mobile navigation after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.innerWidth <= 768) {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+  }
+
+  // Re-add listener on resize if needed
+  window.addEventListener('resize', function() {
+    if (window.innerWidth <= 768) {
+      window.removeEventListener('scroll', handleScroll);
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    } else {
+      window.removeEventListener('scroll', handleScroll);
+      const header = document.querySelector('header.sticky-header');
+      if (header) header.classList.remove('scrolled');
+    }
+  });
 });
 
 
