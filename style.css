@@ -631,37 +631,129 @@ button {
 
 /* Backup Controls */
 #backupControls {
-  background: #37474f;
+  background: linear-gradient(135deg, #37474f 0%, #455a64 100%);
   border: none;
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 24px;
   margin: 20px auto;
-  max-width: 500px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  color: white;
 }
 
-#backupControls button {
-  background: #26a69a;
+.backup-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.backup-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.4rem;
+  color: #26a69a;
+  font-weight: 600;
+}
+
+.backup-header h3 i {
+  margin-right: 8px;
+}
+
+.backup-header p {
+  margin: 0;
+  color: #b0bec5;
+  font-size: 0.9rem;
+}
+
+.backup-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.backup-btn {
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 10px 20px;
-  margin: 0 8px 8px 0;
-  font-weight: 500;
+  border-radius: 8px;
+  padding: 14px 24px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(38, 166, 154, 0.25);
-  font-size: 0.875rem;
-}
-
-#backupControls button:hover {
-  background: #00acc1;
+  transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(38, 166, 154, 0.3);
-  transform: translateY(-1px);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+  justify-content: center;
 }
 
-#backupControls small {
-  color: #90a4ae;
+.backup-btn:hover {
+  background: linear-gradient(135deg, #00acc1 0%, #00e5ff 100%);
+  box-shadow: 0 6px 16px rgba(38, 166, 154, 0.4);
+  transform: translateY(-2px);
+}
+
+.backup-btn:active {
+  transform: translateY(0);
+}
+
+.backup-btn:disabled {
+  background: #607d8b;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.backup-btn i {
+  font-size: 1.1rem;
+}
+
+.export-btn {
+  background: linear-gradient(135deg, #26a69a 0%, #00bcd4 100%);
+}
+
+.import-btn {
+  background: linear-gradient(135deg, #5c6bc0 0%, #7986cb 100%);
+}
+
+.import-btn:hover {
+  background: linear-gradient(135deg, #3f51b5 0%, #5c6bc0 100%);
+}
+
+.backup-tips {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.backup-tips strong {
+  color: #81c784;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.backup-tips strong i {
+  margin-right: 6px;
+}
+
+.backup-tips ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  color: #e1e8ed;
+}
+
+.backup-tips li {
+  margin-bottom: 6px;
+}
+
+.backup-tips li strong {
+  display: inline;
+  color: #26a69a;
+  margin-bottom: 0;
 }
 
 /* Mobile Responsive Improvements */
@@ -711,12 +803,18 @@ button {
   }
   
   /* Larger backup control buttons */
-  #backupControls button {
-    padding: 14px 24px;
-    font-size: 1rem;
-    min-height: 44px;
+  .backup-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .backup-btn {
     width: 100%;
-    margin: 0 0 12px 0;
+    max-width: 280px;
+    padding: 16px 24px;
+    font-size: 1.1rem;
+    min-height: 48px;
+    margin-bottom: 12px;
   }
   
   /* Better form elements */
