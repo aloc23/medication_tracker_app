@@ -59,6 +59,12 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   
+  /* Glow Effects */
+  --glow-primary: 0 0 15px rgba(37, 99, 235, 0.3), 0 0 30px rgba(37, 99, 235, 0.1);
+  --glow-primary-subtle: 0 0 8px rgba(37, 99, 235, 0.2), 0 0 16px rgba(37, 99, 235, 0.05);
+  --glow-secondary: 0 0 15px rgba(16, 185, 129, 0.3), 0 0 30px rgba(16, 185, 129, 0.1);
+  --glow-accent: 0 0 15px rgba(245, 158, 11, 0.3), 0 0 30px rgba(245, 158, 11, 0.1);
+  
   /* Typography */
   --font-family: 'Inter', 'Segoe UI', 'Roboto', system-ui, sans-serif;
   --font-size-xs: 0.75rem;
@@ -91,6 +97,12 @@
     --text-secondary: #94a3b8;
     --border-color: #334155;
     --border-hover: #475569;
+    
+    /* Enhanced glow effects for dark mode */
+    --glow-primary: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.15);
+    --glow-primary-subtle: 0 0 12px rgba(59, 130, 246, 0.3), 0 0 24px rgba(59, 130, 246, 0.1);
+    --glow-secondary: 0 0 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(16, 185, 129, 0.15);
+    --glow-accent: 0 0 20px rgba(245, 158, 11, 0.4), 0 0 40px rgba(245, 158, 11, 0.15);
   }
 }
 
@@ -163,6 +175,8 @@ body {
   background-color: var(--surface);
   border-color: var(--border-hover);
   color: var(--text-primary);
+  box-shadow: var(--glow-primary-subtle);
+  transform: translateY(-1px);
 }
 
 .user-switch-btn i {
@@ -204,12 +218,15 @@ body {
 .nav-btn:hover {
   color: var(--text-primary);
   background-color: var(--surface);
+  box-shadow: var(--glow-primary-subtle);
+  transform: translateY(-1px);
 }
 
 .nav-btn.active {
   color: var(--primary-color);
   border-bottom-color: var(--primary-color);
   background-color: var(--surface);
+  box-shadow: var(--glow-primary-subtle);
 }
 
 .nav-btn i {
@@ -255,6 +272,8 @@ body {
 .mobile-nav-btn.active {
   color: var(--primary-color);
   background-color: rgba(37, 99, 235, 0.1);
+  box-shadow: var(--glow-primary-subtle);
+  transform: translateY(-1px);
 }
 
 .mobile-nav-btn i {
@@ -313,8 +332,9 @@ body {
 }
 
 .med-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), var(--glow-primary-subtle);
   border-color: var(--border-hover);
+  transform: translateY(-1px);
 }
 
 .med-card summary {
@@ -394,7 +414,7 @@ body {
 .form-group select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), var(--glow-primary-subtle);
 }
 
 .form-group input::placeholder,
@@ -531,11 +551,12 @@ body {
 .primary-btn:hover {
   background-color: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), var(--glow-primary);
 }
 
 .primary-btn:active {
   transform: translateY(0);
+  box-shadow: var(--glow-primary-subtle);
 }
 
 .secondary-btn {
@@ -560,6 +581,8 @@ body {
   background-color: var(--surface);
   color: var(--text-primary);
   border-color: var(--border-hover);
+  box-shadow: var(--glow-primary-subtle);
+  transform: translateY(-1px);
 }
 
 .export-btn {
@@ -582,7 +605,7 @@ body {
 .export-btn:hover {
   background-color: var(--secondary-dark);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), var(--glow-secondary);
 }
 
 .import-btn {
@@ -591,6 +614,8 @@ body {
 
 .import-btn:hover {
   background-color: #2563eb;
+  box-shadow: var(--glow-primary);
+  transform: translateY(-1px);
 }
 
 .reset-btn {
@@ -613,7 +638,7 @@ body {
 .reset-btn:hover {
   background-color: #dc2626;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), 0 0 15px rgba(239, 68, 68, 0.3), 0 0 30px rgba(239, 68, 68, 0.1);
 }
 
 /* Action Buttons */
@@ -682,6 +707,8 @@ body {
 
 .calendar-navigation button:hover {
   background-color: var(--primary-dark);
+  box-shadow: var(--glow-primary);
+  transform: translateY(-1px);
 }
 
 .calendar-grid {
@@ -708,12 +735,15 @@ body {
 .calendar-grid > div:hover {
   background-color: var(--surface);
   border-color: var(--border-hover);
+  box-shadow: var(--glow-primary-subtle);
+  transform: scale(1.05);
 }
 
 .calendar-today {
   background-color: var(--primary-color) !important;
   color: var(--text-on-primary) !important;
   font-weight: 700;
+  box-shadow: var(--glow-primary);
 }
 
 .has-dose {
@@ -749,6 +779,8 @@ body {
 .collapsible:hover {
   background-color: var(--surface);
   border-color: var(--border-hover);
+  box-shadow: var(--glow-primary-subtle);
+  transform: translateY(-1px);
 }
 
 .collapse-icon {
