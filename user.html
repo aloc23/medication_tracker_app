@@ -39,7 +39,7 @@
     .user-selection-card {
       background: var(--surface-elevated);
       border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-xl);
+      box-shadow: var(--glow-xl);
       padding: var(--spacing-2xl);
       width: 100%;
       max-width: 420px;
@@ -87,7 +87,7 @@
     }
     
     .user-item:hover {
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--glow-md);
       border-color: var(--border-hover);
     }
     
@@ -158,7 +158,7 @@
     .add-user-form input:focus {
       outline: none;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      box-shadow: var(--glow-md), 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
     
     .add-user-form input::placeholder {
@@ -180,12 +180,13 @@
       gap: var(--spacing-sm);
       min-height: 44px;
       white-space: nowrap;
+      box-shadow: var(--glow-sm);
     }
     
     .add-user-form button:hover {
       background: var(--primary-dark);
       transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--glow-md);
     }
     
     .back-link {
