@@ -59,6 +59,16 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   
+  /* Enhanced Glow Effects */
+  --glow-sm: 0 0 8px rgba(37, 99, 235, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
+  --glow-md: 0 0 12px rgba(37, 99, 235, 0.4), 0 0 20px rgba(37, 99, 235, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15);
+  --glow-lg: 0 0 16px rgba(37, 99, 235, 0.5), 0 0 32px rgba(37, 99, 235, 0.3), 0 0 48px rgba(37, 99, 235, 0.1), 0 8px 16px rgba(0, 0, 0, 0.2);
+  --glow-xl: 0 0 24px rgba(37, 99, 235, 0.6), 0 0 48px rgba(37, 99, 235, 0.4), 0 0 72px rgba(37, 99, 235, 0.2), 0 12px 24px rgba(0, 0, 0, 0.25);
+  
+  /* Interactive Glow Effects */
+  --glow-hover: 0 0 20px rgba(37, 99, 235, 0.7), 0 0 40px rgba(37, 99, 235, 0.5), 0 0 60px rgba(37, 99, 235, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2);
+  --glow-active: 0 0 16px rgba(37, 99, 235, 0.8), 0 0 32px rgba(37, 99, 235, 0.6), 0 0 48px rgba(37, 99, 235, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+  
   /* Typography */
   --font-family: 'Inter', 'Segoe UI', 'Roboto', system-ui, sans-serif;
   --font-size-xs: 0.75rem;
@@ -91,6 +101,16 @@
     --text-secondary: #94a3b8;
     --border-color: #334155;
     --border-hover: #475569;
+    
+    /* Enhanced Dark Mode Glow Effects */
+    --glow-sm: 0 0 10px rgba(59, 130, 246, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+    --glow-md: 0 0 16px rgba(59, 130, 246, 0.5), 0 0 24px rgba(59, 130, 246, 0.3), 0 4px 8px rgba(0, 0, 0, 0.4);
+    --glow-lg: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.4), 0 0 60px rgba(59, 130, 246, 0.2), 0 8px 16px rgba(0, 0, 0, 0.5);
+    --glow-xl: 0 0 32px rgba(59, 130, 246, 0.7), 0 0 64px rgba(59, 130, 246, 0.5), 0 0 96px rgba(59, 130, 246, 0.3), 0 12px 24px rgba(0, 0, 0, 0.6);
+    
+    /* Interactive Dark Mode Glow Effects */
+    --glow-hover: 0 0 24px rgba(59, 130, 246, 0.8), 0 0 48px rgba(59, 130, 246, 0.6), 0 0 72px rgba(59, 130, 246, 0.4), 0 8px 16px rgba(0, 0, 0, 0.5);
+    --glow-active: 0 0 20px rgba(59, 130, 246, 0.9), 0 0 40px rgba(59, 130, 246, 0.7), 0 0 60px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -123,7 +143,7 @@ body {
   z-index: 100;
   background-color: var(--surface-elevated);
   border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glow-md);
   backdrop-filter: blur(8px);
   height: var(--header-height);
 }
@@ -204,12 +224,16 @@ body {
 .nav-btn:hover {
   color: var(--text-primary);
   background-color: var(--surface);
+  box-shadow: var(--glow-sm);
+  transform: translateY(-1px);
 }
 
 .nav-btn.active {
   color: var(--primary-color);
   border-bottom-color: var(--primary-color);
   background-color: var(--surface);
+  box-shadow: var(--glow-md);
+  transform: translateY(-1px);
 }
 
 .nav-btn i {
@@ -227,7 +251,7 @@ body {
   background-color: var(--surface-elevated);
   border-top: 1px solid var(--border-color);
   padding: var(--spacing-sm) var(--spacing-sm) calc(var(--spacing-sm) + env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1);
+  box-shadow: var(--glow-lg);
   backdrop-filter: blur(8px);
 }
 
@@ -255,6 +279,8 @@ body {
 .mobile-nav-btn.active {
   color: var(--primary-color);
   background-color: rgba(37, 99, 235, 0.1);
+  box-shadow: var(--glow-md);
+  transform: translateY(-2px);
 }
 
 .mobile-nav-btn i {
@@ -307,14 +333,15 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glow-sm);
   transition: all var(--transition-fast);
   overflow: hidden;
 }
 
 .med-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--glow-hover);
   border-color: var(--border-hover);
+  transform: translateY(-2px);
 }
 
 .med-card summary {
@@ -394,7 +421,7 @@ body {
 .form-group select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--glow-md);
 }
 
 .form-group input::placeholder,
@@ -526,12 +553,13 @@ body {
   transition: all var(--transition-fast);
   min-height: 44px;
   min-width: 44px;
+  box-shadow: var(--glow-sm);
 }
 
 .primary-btn:hover {
   background-color: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--glow-hover);
 }
 
 .primary-btn:active {
@@ -577,12 +605,13 @@ body {
   cursor: pointer;
   transition: all var(--transition-fast);
   min-height: 40px;
+  box-shadow: var(--glow-sm);
 }
 
 .export-btn:hover {
   background-color: var(--secondary-dark);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--glow-md);
 }
 
 .import-btn {
@@ -608,12 +637,13 @@ body {
   cursor: pointer;
   transition: all var(--transition-fast);
   min-height: 44px;
+  box-shadow: var(--glow-sm);
 }
 
 .reset-btn:hover {
   background-color: #dc2626;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--glow-md);
 }
 
 /* Action Buttons */
@@ -728,6 +758,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-lg);
+  box-shadow: var(--glow-sm);
 }
 
 /* Collapsible Sections */
@@ -744,6 +775,12 @@ body {
   margin-bottom: var(--spacing-md);
   font-weight: 600;
   user-select: none;
+  box-shadow: var(--glow-sm);
+}
+
+.collapsible:hover {
+  box-shadow: var(--glow-md);
+  transform: translateY(-1px);
 }
 
 .collapsible:hover {
@@ -777,7 +814,7 @@ body {
   color: var(--text-on-primary);
   padding: var(--spacing-md) var(--spacing-xl);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--glow-xl);
   font-size: var(--font-size-sm);
   font-weight: 500;
   z-index: 1000;
