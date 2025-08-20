@@ -87,8 +87,9 @@
     }
     
     .user-item:hover {
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow-md), var(--glow-primary-subtle);
       border-color: var(--border-hover);
+      transform: translateY(-1px);
     }
     
     .user-btn {
@@ -158,7 +159,7 @@
     .add-user-form input:focus {
       outline: none;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), var(--glow-primary-subtle);
     }
     
     .add-user-form input::placeholder {
@@ -185,7 +186,7 @@
     .add-user-form button:hover {
       background: var(--primary-dark);
       transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow-md), var(--glow-primary);
     }
     
     .back-link {
