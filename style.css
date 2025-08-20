@@ -59,6 +59,17 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   
+  /* Enhanced Glow Shadows */
+  --glow-sm: 0 2px 8px rgba(37, 99, 235, 0.15), 0 1px 4px rgba(37, 99, 235, 0.1);
+  --glow-md: 0 4px 16px rgba(37, 99, 235, 0.25), 0 2px 8px rgba(37, 99, 235, 0.15), 0 1px 4px rgba(37, 99, 235, 0.1);
+  --glow-lg: 0 8px 32px rgba(37, 99, 235, 0.3), 0 4px 16px rgba(37, 99, 235, 0.2), 0 2px 8px rgba(37, 99, 235, 0.15);
+  --glow-xl: 0 12px 48px rgba(37, 99, 235, 0.35), 0 8px 24px rgba(37, 99, 235, 0.25), 0 4px 12px rgba(37, 99, 235, 0.2);
+  
+  /* Accent Glow Shadows */
+  --accent-glow-sm: 0 2px 8px rgba(245, 158, 11, 0.15), 0 1px 4px rgba(245, 158, 11, 0.1);
+  --accent-glow-md: 0 4px 16px rgba(245, 158, 11, 0.25), 0 2px 8px rgba(245, 158, 11, 0.15), 0 1px 4px rgba(245, 158, 11, 0.1);
+  --accent-glow-lg: 0 8px 32px rgba(245, 158, 11, 0.3), 0 4px 16px rgba(245, 158, 11, 0.2), 0 2px 8px rgba(245, 158, 11, 0.15);
+  
   /* Typography */
   --font-family: 'Inter', 'Segoe UI', 'Roboto', system-ui, sans-serif;
   --font-size-xs: 0.75rem;
@@ -91,6 +102,17 @@
     --text-secondary: #94a3b8;
     --border-color: #334155;
     --border-hover: #475569;
+    
+    /* Enhanced Glow Shadows for Dark Mode - More vibrant */
+    --glow-sm: 0 2px 12px rgba(59, 130, 246, 0.4), 0 1px 6px rgba(59, 130, 246, 0.25);
+    --glow-md: 0 4px 24px rgba(59, 130, 246, 0.5), 0 2px 12px rgba(59, 130, 246, 0.35), 0 1px 6px rgba(59, 130, 246, 0.25);
+    --glow-lg: 0 8px 48px rgba(59, 130, 246, 0.6), 0 4px 24px rgba(59, 130, 246, 0.4), 0 2px 12px rgba(59, 130, 246, 0.3);
+    --glow-xl: 0 12px 72px rgba(59, 130, 246, 0.7), 0 8px 36px rgba(59, 130, 246, 0.5), 0 4px 18px rgba(59, 130, 246, 0.35);
+    
+    /* Accent Glow Shadows for Dark Mode */
+    --accent-glow-sm: 0 2px 12px rgba(251, 191, 36, 0.4), 0 1px 6px rgba(251, 191, 36, 0.25);
+    --accent-glow-md: 0 4px 24px rgba(251, 191, 36, 0.5), 0 2px 12px rgba(251, 191, 36, 0.35), 0 1px 6px rgba(251, 191, 36, 0.25);
+    --accent-glow-lg: 0 8px 48px rgba(251, 191, 36, 0.6), 0 4px 24px rgba(251, 191, 36, 0.4), 0 2px 12px rgba(251, 191, 36, 0.3);
   }
 }
 
@@ -123,7 +145,7 @@ body {
   z-index: 100;
   background-color: var(--surface-elevated);
   border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glow-lg);
   backdrop-filter: blur(8px);
   height: var(--header-height);
 }
@@ -175,6 +197,7 @@ body {
   border-bottom: 1px solid var(--border-color);
   height: var(--desktop-nav-height);
   display: block;
+  box-shadow: var(--glow-md);
 }
 
 .nav-container {
@@ -204,12 +227,14 @@ body {
 .nav-btn:hover {
   color: var(--text-primary);
   background-color: var(--surface);
+  box-shadow: var(--glow-sm);
 }
 
 .nav-btn.active {
   color: var(--primary-color);
   border-bottom-color: var(--primary-color);
   background-color: var(--surface);
+  box-shadow: var(--glow-md);
 }
 
 .nav-btn i {
@@ -227,7 +252,7 @@ body {
   background-color: var(--surface-elevated);
   border-top: 1px solid var(--border-color);
   padding: var(--spacing-sm) var(--spacing-sm) calc(var(--spacing-sm) + env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1);
+  box-shadow: var(--glow-lg);
   backdrop-filter: blur(8px);
 }
 
@@ -255,6 +280,7 @@ body {
 .mobile-nav-btn.active {
   color: var(--primary-color);
   background-color: rgba(37, 99, 235, 0.1);
+  box-shadow: var(--glow-sm);
 }
 
 .mobile-nav-btn i {
@@ -307,13 +333,13 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glow-sm);
   transition: all var(--transition-fast);
   overflow: hidden;
 }
 
 .med-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--glow-md);
   border-color: var(--border-hover);
 }
 
@@ -394,7 +420,7 @@ body {
 .form-group select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: var(--glow-md), 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-group input::placeholder,
@@ -526,12 +552,13 @@ body {
   transition: all var(--transition-fast);
   min-height: 44px;
   min-width: 44px;
+  box-shadow: var(--glow-sm);
 }
 
 .primary-btn:hover {
   background-color: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--glow-md);
 }
 
 .primary-btn:active {
@@ -560,6 +587,7 @@ body {
   background-color: var(--surface);
   color: var(--text-primary);
   border-color: var(--border-hover);
+  box-shadow: var(--glow-sm);
 }
 
 .export-btn {
@@ -577,20 +605,23 @@ body {
   cursor: pointer;
   transition: all var(--transition-fast);
   min-height: 40px;
+  box-shadow: var(--accent-glow-sm);
 }
 
 .export-btn:hover {
   background-color: var(--secondary-dark);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--accent-glow-md);
 }
 
 .import-btn {
   background-color: var(--info-color);
+  box-shadow: var(--glow-sm);
 }
 
 .import-btn:hover {
   background-color: #2563eb;
+  box-shadow: var(--glow-md);
 }
 
 .reset-btn {
@@ -608,12 +639,13 @@ body {
   cursor: pointer;
   transition: all var(--transition-fast);
   min-height: 44px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15), 0 1px 4px rgba(239, 68, 68, 0.1);
 }
 
 .reset-btn:hover {
   background-color: #dc2626;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25), 0 2px 8px rgba(239, 68, 68, 0.15), 0 1px 4px rgba(239, 68, 68, 0.1);
 }
 
 /* Action Buttons */
@@ -626,6 +658,7 @@ body {
   background-color: var(--surface);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
+  box-shadow: var(--glow-lg);
 }
 
 .export-group,
@@ -678,10 +711,12 @@ body {
   cursor: pointer;
   transition: all var(--transition-fast);
   min-height: 44px;
+  box-shadow: var(--glow-sm);
 }
 
 .calendar-navigation button:hover {
   background-color: var(--primary-dark);
+  box-shadow: var(--glow-md);
 }
 
 .calendar-grid {
@@ -708,18 +743,21 @@ body {
 .calendar-grid > div:hover {
   background-color: var(--surface);
   border-color: var(--border-hover);
+  box-shadow: var(--glow-sm);
 }
 
 .calendar-today {
   background-color: var(--primary-color) !important;
   color: var(--text-on-primary) !important;
   font-weight: 700;
+  box-shadow: var(--glow-md) !important;
 }
 
 .has-dose {
   background-color: var(--secondary-color) !important;
   color: var(--text-on-primary) !important;
   font-weight: 600;
+  box-shadow: var(--accent-glow-sm) !important;
 }
 
 .calendar-detail {
@@ -728,6 +766,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-lg);
+  box-shadow: var(--glow-md);
 }
 
 /* Collapsible Sections */
@@ -744,11 +783,13 @@ body {
   margin-bottom: var(--spacing-md);
   font-weight: 600;
   user-select: none;
+  box-shadow: var(--glow-sm);
 }
 
 .collapsible:hover {
   background-color: var(--surface);
   border-color: var(--border-hover);
+  box-shadow: var(--glow-md);
 }
 
 .collapse-icon {
